@@ -14,20 +14,19 @@
     <input type="button" id="sendMessage" value="Send"/>
     <ul id="discussion"></ul>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@3.0.0/dist/browser/signalr.min.js"></script>
-
+<script src="~/lib/signalr.js"></script>
 
 <script type="text/javascript">
-        var connection = new signalR.HubConnectionBuilder()
+        const connection = new signalR.HubConnectionBuilder()
             .withUrl("/demo")
             .build();
 
-        var messageInput = document.getElementById('message');
-        var name = 'Bull';
-        var button = document.getElementById("sendMessage");
+        const messageInput = document.getElementById('message');
+        const name = 'Bull';
+        const button = document.getElementById("sendMessage");
 
         connection.on('broadcastMessage', (name, message) => {
-            var liElement = document.createElement('li');
+            const liElement = document.createElement('li');
             liElement.innerHTML = '<strong>' + name + '</strong>:&nbsp;&nbsp;' + message;
             document.getElementById('discussion').appendChild(liElement);
         });
@@ -38,7 +37,7 @@
             messageInput.focus();
         });
 
-        var streamingButton = document.getElementById("startStreaming");
+        const streamingButton = document.getElementById("startStreaming");
         function startStreaming() {
             connection.stream("StartStreaming").subscribe({
                 next: onStreamReceived,
@@ -59,10 +58,10 @@
 
         function onStreamReceived(data) {
             console.log("received: " + data);
-            var liElement = document.createElement('li');
+            const liElement = document.createElement('li');
             liElement.innerHTML = '<strong>' + "received" + '</strong>:&nbsp;&nbsp;' + data;
             document.getElementById('discussion').appendChild(liElement);
         }
 
         connection.start();
-    </script>
+</script>
