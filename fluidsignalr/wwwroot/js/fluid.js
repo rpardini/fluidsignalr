@@ -830,7 +830,7 @@ function startFluid () {
 
     initFramebuffers();
 
-    randomSplatsAndSeconds();
+    //randomSplatsAndSeconds();
 
     lastUpdateTime = Date.now();
     colorUpdateTimer = 0.0;
@@ -890,7 +890,7 @@ function applyInputs () {
     pointers.forEach(p => {
         if (p.moved) {
             p.moved = false;
-            splatPointer(p);
+            send_splatPointer(p);
         }
     });
 }
@@ -1067,6 +1067,12 @@ function applyBloom (source, destination) {
     blit(destination.fbo);
 }
 
+function send_splatPointer (pointer) {
+    let dx = pointer.deltaX * config.SPLAT_FORCE;
+    let dy = pointer.deltaY * config.SPLAT_FORCE;
+    send_splat(pointer.texcoordX, pointer.texcoordY, dx, dy, pointer.color);
+}
+
 function splatPointer (pointer) {
     let dx = pointer.deltaX * config.SPLAT_FORCE;
     let dy = pointer.deltaY * config.SPLAT_FORCE;
@@ -1087,6 +1093,21 @@ function multipleSplats (amount) {
     }
 }
 
+function send_splat (x, y, dx, dy, color) {
+    connection.invoke('splat', x, y, dx, dy, JSON.stringify(color));
+}
+
+connection.on('broadSplat', (x,y,dx,dy,color) => {
+    /*
+    const liElement = document.createElement('li');
+    liElement.innerHTML = '<strong>' + name + '</strong>:&nbsp;&nbsp;' + x + color;
+    document.getElementById('discussion').appendChild(liElement);
+     */
+    let realColor = JSON.parse(color);
+    splat(x, y, dx, dy, realColor);
+});
+
+    
 function splat (x, y, dx, dy, color) {
     gl.viewport(0, 0, velocity.width, velocity.height);
     splatProgram.bind();

@@ -13,7 +13,15 @@ namespace fluidsignalr
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
             return Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                    webBuilder.UseKestrel(serverOptions =>
+                    {
+                        serverOptions.ListenAnyIP(5000);
+                        serverOptions.ListenAnyIP(5001, options => { options.UseHttps(); });
+                    });
+                });
         }
     }
 }

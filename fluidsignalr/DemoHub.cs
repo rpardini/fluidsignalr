@@ -19,6 +19,11 @@ namespace fluidsignalr
             Clients.All.SendAsync("broadcastMessage", name, message);
         }
 
+        public void Splat(double x, double y, double dx, double dy, string color)
+        {
+            Clients.All.SendAsync("broadSplat", x,y,dx,dy,color);
+        }
+
         public override Task OnDisconnectedAsync(Exception exception)
         {
             Clients.All.SendAsync("broadcastMessage", "system", $"{Context.ConnectionId} left the conversation");
