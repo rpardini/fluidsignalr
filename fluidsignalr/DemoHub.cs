@@ -1,4 +1,5 @@
-﻿using System.Threading.Channels;
+﻿using System;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 
@@ -18,7 +19,7 @@ namespace fluidsignalr
             Clients.All.SendAsync("broadcastMessage", name, message);
         }
 
-        public override Task OnDisconnectedAsync(System.Exception exception)
+        public override Task OnDisconnectedAsync(Exception exception)
         {
             Clients.All.SendAsync("broadcastMessage", "system", $"{Context.ConnectionId} left the conversation");
             return base.OnDisconnectedAsync(exception);
@@ -37,7 +38,7 @@ namespace fluidsignalr
 
             async Task WriteToChannel(ChannelWriter<string> writer)
             {
-                for (int i = 0; i < 10; i++)
+                for (var i = 0; i < 10; i++)
                 {
                     await writer.WriteAsync($"sending... {i}");
                     await Task.Delay(1000);

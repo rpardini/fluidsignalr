@@ -17,9 +17,7 @@
 <script src="~/lib/signalr.js"></script>
 
 <script type="text/javascript">
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/demo")
-            .build();
+        const connection = new signalR.HubConnectionBuilder().withUrl("/demo").build();
 
         const messageInput = document.getElementById('message');
         const name = 'Bull';
