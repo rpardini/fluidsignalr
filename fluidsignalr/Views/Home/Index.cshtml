@@ -2,6 +2,10 @@
     ViewData["Title"] = "Home Page";
 }
 
+<script src="~/lib/signalr.js"></script>
+
+<canvas width="1024" height="768"></canvas>
+
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
@@ -14,7 +18,9 @@
     <input type="button" id="sendMessage" value="Send"/>
     <ul id="discussion"></ul>
 </div>
-<script src="~/lib/signalr.js"></script>
+
+<script src="~/js/fluid.js"></script>
+
 
 <script type="text/javascript">
         const connection = new signalR.HubConnectionBuilder().withUrl("/demo").build();
