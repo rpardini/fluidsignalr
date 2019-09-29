@@ -23,7 +23,7 @@ namespace fluidsignalr
             services.Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardLimit = 3;
-                options.KnownNetworks.Add(new IPNetwork(IPAddress.Any, 0));
+                options.KnownNetworks.Add(new IPNetwork(IPAddress.Parse("0.0.0.0"), 0));
                 options.ForwardedHeaders = ForwardedHeaders.All;
             });
             services.AddControllersWithViews();
