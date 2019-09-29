@@ -74,8 +74,7 @@ let config = {
 };
 
 const canvas = document.getElementsByTagName('canvas')[0];
-
-// resizeCanvas();
+resizeCanvas();
 
 
 function pointerPrototype () {
@@ -193,6 +192,7 @@ function supportRenderTextureFormat (gl, internalFormat, format, type) {
 }
 
 function isMobile () {
+    return false; // @TODO
     //alert(navigator.userAgent + /Mobi|Android/i.test(navigator.userAgent));
     return /Mobi|Android/i.test(navigator.userAgent);
 }
@@ -883,8 +883,11 @@ function calcDeltaTime () {
 }
 
 function resizeCanvas () {
+    return false;
+    console.log("Resizing canvas, ", canvas.clientWidth, canvas.clientHeight);
     let width = scaleByPixelRatio(canvas.clientWidth);
     let height = scaleByPixelRatio(canvas.clientHeight);
+    console.log("Resized canvas, ", width, height);
     if (canvas.width != width || canvas.height != height) {
         canvas.width = width;
         canvas.height = height;
@@ -1175,6 +1178,7 @@ canvas.addEventListener('touchstart', e => {
     e.preventDefault();
     const touches = e.targetTouches;
     for (let i = 0; i < touches.length; i++) {
+        console.log("updating pointer", i, "X:", touches[i].pageX, "Y:", touches[i].pageY);
         if (i >= pointers.length)
             pointers.push(new pointerPrototype());
         let posX = scaleByPixelRatio(touches[i].pageX);
@@ -1328,6 +1332,6 @@ function getTextureScale (texture, width, height) {
 }
 
 function scaleByPixelRatio (input) {
-    let pixelRatio = window.devicePixelRatio || 1;
+    let pixelRatio = 1; //window.devicePixelRatio || 1;
     return Math.floor(input * pixelRatio);
 }
