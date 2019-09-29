@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using System;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace fluidsignalr
 {
@@ -19,7 +21,14 @@ namespace fluidsignalr
                     webBuilder.UseKestrel(serverOptions =>
                     {
                         serverOptions.ListenAnyIP(5000);
-                        serverOptions.ListenAnyIP(5001, options => { options.UseHttps(); });
+                        try
+                        {
+                            serverOptions.ListenAnyIP(5001, options => { options.UseHttps(); });
+                        }
+                        catch (Exception e)
+                        {
+                            Console.Out.WriteLine("Could not bind 5001: " + e.Message);
+                        }
                     });
                 });
         }
