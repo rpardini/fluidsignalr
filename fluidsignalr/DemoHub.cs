@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 
 namespace fluidsignalr
@@ -8,7 +9,7 @@ namespace fluidsignalr
     {
         public override Task OnConnectedAsync()
         {
-            Clients.All.SendAsync("broadcastMessage", "system", $"{Context.ConnectionId} joined the conversation");
+            Clients.All.SendAsync("broadcastMessage", "system", $"{Context.ConnectionId} joined the conversation from {Context.GetHttpContext().Connection.RemoteIpAddress}");
             return base.OnConnectedAsync();
         }
 
