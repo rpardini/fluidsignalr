@@ -24,6 +24,28 @@ SOFTWARE.
 
 'use strict';
 
+// <START SIGNALR CONNECTION>
+const connection = new signalR.HubConnectionBuilder().withUrl("/demo").build();
+
+const messageInput = document.getElementById('message');
+const button = document.getElementById("sendMessage");
+
+connection.on('broadcastMessage', (name, message) => {
+    const liElement = document.createElement('li');
+    liElement.innerHTML = '<strong>' + name + '</strong>:&nbsp;&nbsp;' + message;
+    document.getElementById('discussion').appendChild(liElement);
+});
+
+button.addEventListener("click", event => {
+    connection.invoke('send', messageInput.value);
+    messageInput.value = '';
+    messageInput.focus();
+});
+
+connection.start();
+// </START SIGNALR CONNECTION>
+
+
 let config = {
     MOBILE_DYE_RESOLUTION: 128,
     MOBILE_SIM_RESOLUTION: 64,

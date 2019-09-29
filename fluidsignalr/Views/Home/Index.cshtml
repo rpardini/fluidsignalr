@@ -1,72 +1,17 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
+    Layout = "_Layout";
 }
 
 <script src="~/lib/signalr.js"></script>
 
 <canvas width="1024" height="768"></canvas>
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
-
-
 <div class="container">
-    <input type="button" id="startStreaming" value="StartStreaming"/>
+    Message:
     <input type="text" id="message"/>
     <input type="button" id="sendMessage" value="Send"/>
     <ul id="discussion"></ul>
 </div>
-
-
-
-<script type="text/javascript">
-        const connection = new signalR.HubConnectionBuilder().withUrl("/demo").build();
-
-        const messageInput = document.getElementById('message');
-        const name = 'Bull';
-        const button = document.getElementById("sendMessage");
-
-        connection.on('broadcastMessage', (name, message) => {
-            const liElement = document.createElement('li');
-            liElement.innerHTML = '<strong>' + name + '</strong>:&nbsp;&nbsp;' + message;
-            document.getElementById('discussion').appendChild(liElement);
-        });
-
-        button.addEventListener("click", event => {
-            connection.invoke('send', name, messageInput.value);
-            messageInput.value = '';
-            messageInput.focus();
-        });
-
-        const streamingButton = document.getElementById("startStreaming");
-        function startStreaming() {
-            connection.stream("StartStreaming").subscribe({
-                next: onStreamReceived,
-                err: function (err) {
-                    console.log(err);
-                },
-                complete: function () {
-                    console.log("finished streaming");
-                }
-            });
-        }
-        connection.on("streamStarted", function () {
-            startStreaming();
-        });
-        streamingButton.addEventListener("click", event => {
-            connection.invoke("sendStreamInit");
-        });
-
-        function onStreamReceived(data) {
-            console.log("received: " + data);
-            const liElement = document.createElement('li');
-            liElement.innerHTML = '<strong>' + "received" + '</strong>:&nbsp;&nbsp;' + data;
-            document.getElementById('discussion').appendChild(liElement);
-        }
-
-        connection.start();
-</script>
 
 <script src="~/js/fluid.js"></script>
