@@ -27,19 +27,10 @@ SOFTWARE.
 // <START SIGNALR CONNECTION>
 const connection = new signalR.HubConnectionBuilder().withUrl("/demo").build();
 
-const messageInput = document.getElementById('message');
-const button = document.getElementById("sendMessage");
-
 connection.on('broadcastMessage', (name, message) => {
     const liElement = document.createElement('li');
     liElement.innerHTML = '<strong>' + name + '</strong>:&nbsp;&nbsp;' + message;
     document.getElementById('discussion').appendChild(liElement);
-});
-
-button.addEventListener("click", event => {
-    connection.invoke('send', messageInput.value);
-    messageInput.value = '';
-    messageInput.focus();
 });
 
 connection.start();
@@ -52,7 +43,7 @@ let config = {
     SIM_RESOLUTION: 512,
     DYE_RESOLUTION: 1024,
     DENSITY_DISSIPATION: 0.2*5,
-    VELOCITY_DISSIPATION: 0,
+    VELOCITY_DISSIPATION: 0.75,
     PRESSURE: 0.1,
     PRESSURE_ITERATIONS: 15,
     CURL: 45,
@@ -990,7 +981,7 @@ function updateKeywords() {
 
 updateKeywords();
 initFramebuffers();
-multipleSplats(parseInt(Math.random() * 20) + 5);
+//multipleSplats(parseInt(Math.random() * 20) + 5);
 
 let lastUpdateTime = Date.now();
 let colorUpdateTimer = 0.0;
