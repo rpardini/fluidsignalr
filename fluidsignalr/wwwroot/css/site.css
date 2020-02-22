@@ -1,3 +1,20 @@
 ﻿/* WTF. Some CSS... */
 
-body { background-color: dimgray;}
+
+
+html, body {
+    overflow: hidden;
+    background-color: dimgray;
+}
+
+body {
+    margin: 0;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+}
