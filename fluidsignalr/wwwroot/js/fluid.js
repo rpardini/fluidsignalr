@@ -28,9 +28,7 @@ SOFTWARE.
 const connection = new signalR.HubConnectionBuilder().withUrl("/demo").build();
 
 connection.on('broadcastMessage', (name, message) => {
-    const liElement = document.createElement('li');
-    liElement.innerHTML = '<strong>' + name + '</strong>:&nbsp;&nbsp;' + message;
-    document.getElementById('discussion').appendChild(liElement);
+    console.log('broadcastmessage:', name, message);
 });
 
 connection.start();
@@ -988,6 +986,14 @@ let colorUpdateTimer = 0.0;
 
 window.fluidHasStarted = false;
 
+function randomSplatsNow(num) {
+    let splats = Math.floor(num );
+    let millis = (Math.floor(Math.random() * 12) + 3) * 1000;
+    console.log("splatsNow!", splats, "millis", millis);
+    multipleSplats(splats);
+}
+
+
 function randomSplatsAndSeconds() {
     let splats = Math.floor(Math.random() * 3) + 1;
     let millis = (Math.floor(Math.random() * 12) + 3) * 1000;
@@ -1039,10 +1045,10 @@ function calcDeltaTime() {
 }
 
 function resizeCanvas() {
-    console.log("Resizing canvas, ", canvas.clientWidth, canvas.clientHeight);
+    //console.log("Resizing canvas, ", canvas.clientWidth, canvas.clientHeight);
     let width = scaleByPixelRatio(canvas.clientWidth);
     let height = scaleByPixelRatio(canvas.clientHeight);
-    console.log("Resized canvas, ", width, height);
+    //console.log("Resized canvas, ", width, height);
     if (canvas.width != width || canvas.height != height) {
         canvas.width = width;
         canvas.height = height;
