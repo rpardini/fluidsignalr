@@ -56,6 +56,26 @@ function midiMessageReceived(event) {
     }
 
     if (parsed.messageType === "controlchange") {
+        if (parsed.controllerNumber === 42) {
+            // pitch sliders
+            if (parsed.channel === 1) {
+                console.log("LEFT PITCH: ", parsed.controllerValue);
+                // transpose 0 to 0.01, 127 to 1.0
+                config.PRESSURE = (parsed.controllerValue / 127) * 2;
+                console.log("config.PRESSURE", config.PRESSURE);
+                understood = true;
+            }
+            if (parsed.channel === 3) {
+                console.log("RIGHT PITCH: ", parsed.controllerValue);
+                // transpose 0 to 0.01, 127 to 1.0
+                config.DYE_RESOLUTION = 32 + ((parsed.controllerValue / 127) * 1024);
+                console.log("config.DYE_RESOLUTION", config.DYE_RESOLUTION);
+                doReinitFramebuffers = true;
+                understood = true;
+            }
+        }
+
+
         if (parsed.controllerNumber === 1) {
             if (parsed.channel === 5) {
                 // the left main level knob. value is 0 to 127.
@@ -63,6 +83,7 @@ function midiMessageReceived(event) {
                 // transpose 0 to 0.01, 127 to 1.0
                 config.SPLAT_RADIUS = parsed.controllerValue / 127;
                 if (config.SPLAT_RADIUS === 0) config.SPLAT_RADIUS = 0.01;
+                console.log("config.SPLAT_RADIUS", config.SPLAT_RADIUS);
                 understood = true;
             }
 
@@ -70,8 +91,16 @@ function midiMessageReceived(event) {
                 // the left main level knob. value is 0 to 127.
                 console.log("MIXER SLIDER: ", parsed.controllerValue);
                 // transpose 0 to 0, 127 to 1.0
-                config.PRESSURE = parsed.controllerValue / 127;
-                console.log("config.PRESSURE", config.PRESSURE);
+                //config.PRESSURE = parsed.controllerValue / 127;
+                //console.log("config.PRESSURE", config.PRESSURE);
+                //config.PRESSURE_ITERATIONS = (parsed.controllerValue / 127) * 200;
+                //console.log("config.PRESSURE_ITERATIONS", config.PRESSURE);
+
+                config.SIM_RESOLUTION = 32 + ((parsed.controllerValue / 127) * 128);
+                console.log("config.SIM_RESOLUTION", config.SIM_RESOLUTION);
+                doReinitFramebuffers = true;
+
+
                 understood = true;
             }
 

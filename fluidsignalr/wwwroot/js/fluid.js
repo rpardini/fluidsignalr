@@ -43,10 +43,10 @@ let config = {
     DENSITY_DISSIPATION: 0.2*5,
     VELOCITY_DISSIPATION: 0.75,
     PRESSURE: 0.1,
-    PRESSURE_ITERATIONS: 15,
+    PRESSURE_ITERATIONS: 3,
     CURL: 45,
     SPLAT_RADIUS: 0.15,
-    SPLAT_FORCE: 7000,
+    SPLAT_FORCE: 50,
     SHADING: true,
     COLORFUL: false,
     COLOR_UPDATE_SPEED: 1,
@@ -81,6 +81,7 @@ function pointerPrototype() {
 let pointers = [];
 let splatStack = [];
 pointers.push(new pointerPrototype());
+let doReinitFramebuffers = false;
 
 const {gl, ext} = getWebGLContext(canvas);
 
@@ -1026,8 +1027,10 @@ startFluid();
 
 function update() {
     const dt = calcDeltaTime();
-    if (resizeCanvas())
+    if (doReinitFramebuffers | resizeCanvas()) {
+        doReinitFramebuffers = false;
         initFramebuffers();
+    }
     updateColors(dt);
     applyInputs();
     if (!config.PAUSED)
