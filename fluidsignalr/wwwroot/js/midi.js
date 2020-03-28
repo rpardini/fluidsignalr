@@ -70,7 +70,7 @@ function midiMessageReceived(event) {
                 // transpose 0 to 0.01, 127 to 1.0
                 config.DYE_RESOLUTION = 32 + ((parsed.controllerValue / 127) * 1024);
                 console.log("config.DYE_RESOLUTION", config.DYE_RESOLUTION);
-                doReinitFramebuffers = true;
+                config.doReinitFramebuffers = true;
                 understood = true;
             }
         }
@@ -98,7 +98,7 @@ function midiMessageReceived(event) {
 
                 config.SIM_RESOLUTION = 32 + ((parsed.controllerValue / 127) * 128);
                 console.log("config.SIM_RESOLUTION", config.SIM_RESOLUTION);
-                doReinitFramebuffers = true;
+                config.doReinitFramebuffers = true;
 
 
                 understood = true;
@@ -138,6 +138,7 @@ function midiMessageReceived(event) {
 
     }
 
+    if (understood)  connection.invoke('config', JSON.stringify(config));
     if (!understood) console.log("Got midi message but not understood: ", "messsageType", parsed.messageType, "controllerNumber", parsed.controllerNumber, "channel: ", parsed.channel, "value: ", parsed.controllerValue, parsed);
 
 }

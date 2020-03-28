@@ -24,6 +24,11 @@ namespace fluidsignalr
             Clients.All.SendAsync("broadSplat", x, y, dx, dy, color);
         }
 
+        public void Config(string jsonConfig)
+        {
+            Clients.All.SendAsync("broadConfig", jsonConfig);
+        }
+
         public override Task OnDisconnectedAsync(Exception exception)
         {
             Clients.All.SendAsync("broadcastMessage", "system", $"{Context.ConnectionId} left the conversation");

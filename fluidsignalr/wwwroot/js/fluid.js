@@ -61,7 +61,8 @@ let config = {
     BLOOM_SOFT_KNEE: 0.7,
     SUNRAYS: true,
     SUNRAYS_RESOLUTION: 196*4,
-    SUNRAYS_WEIGHT: 1.0
+    SUNRAYS_WEIGHT: 1.0,
+    doReinitFramebuffers: false
 };
 
 const canvas = document.getElementsByTagName('canvas')[0];
@@ -81,7 +82,6 @@ function pointerPrototype() {
 let pointers = [];
 let splatStack = [];
 pointers.push(new pointerPrototype());
-let doReinitFramebuffers = false;
 
 const {gl, ext} = getWebGLContext(canvas);
 
@@ -1027,8 +1027,8 @@ startFluid();
 
 function update() {
     const dt = calcDeltaTime();
-    if (doReinitFramebuffers | resizeCanvas()) {
-        doReinitFramebuffers = false;
+    if (config.doReinitFramebuffers | resizeCanvas()) {
+        config.doReinitFramebuffers = false;
         initFramebuffers();
     }
     updateColors(dt);
@@ -1314,6 +1314,12 @@ connection.on('broadSplat', (x, y, dx, dy, color) => {
     let realColor = JSON.parse(color);
     //console.log("broadSplat", x, y, dx, dy, realColor);
     splat(x, y, dx, dy, realColor);
+});
+
+connection.on('broadConfig', (jsonConfig) => {
+    let realConfig = JSON.parse(jsonConfig);
+    console.log("broadConfig", realConfig);
+    config = realConfig;
 });
 
 
