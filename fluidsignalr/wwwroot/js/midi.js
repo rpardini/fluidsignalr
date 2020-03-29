@@ -119,7 +119,7 @@ function midiMessageReceived(event) {
             if (parsed.channel === 5) {
                 console.log("LEFT EFFECT KNOB: ", parsed.controllerValue);
                 // transpose 0 to 0.01, 127 to 1.0
-                config.DENSITY_DISSIPATION = (parsed.controllerValue / 127) * 4;
+                config.DENSITY_DISSIPATION = ((parsed.controllerValue / 127)  - 0.5) * 4;
                 console.log("config.DENSITY_DISSIPATION", config.DENSITY_DISSIPATION);
                 understood = true;
             }
@@ -127,7 +127,8 @@ function midiMessageReceived(event) {
             if (parsed.channel === 6) {
                 console.log("RIGHT EFFECT KNOB: ", parsed.controllerValue);
                 // transpose 0 to 0, 127 to 1.0
-                config.VELOCITY_DISSIPATION = (parsed.controllerValue / 127) * 4;
+                let knob = (parsed.controllerValue / 127) - 0.5;
+                config.VELOCITY_DISSIPATION = knob * 4;
                 console.log("config.VELOCITY_DISSIPATION", config.VELOCITY_DISSIPATION);
                 understood = true;
             }
@@ -138,7 +139,7 @@ function midiMessageReceived(event) {
 
     }
 
-    if (understood)  connection.invoke('config', JSON.stringify(config));
+    if (understood) connection.invoke('config', JSON.stringify(config));
     if (!understood) console.log("Got midi message but not understood: ", "messsageType", parsed.messageType, "controllerNumber", parsed.controllerNumber, "channel: ", parsed.channel, "value: ", parsed.controllerValue, parsed);
 
 }
