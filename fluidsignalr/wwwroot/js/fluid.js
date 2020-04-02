@@ -65,8 +65,6 @@ let config = {
     doReinitFramebuffers: false
 };
 
-console.log("querystring", window.location.search);
-
 if (window.location.search && window.location.search.includes("transparent")) {
     config.TRANSPARENT = true;
 }
@@ -1326,6 +1324,9 @@ connection.on('broadSplat', (x, y, dx, dy, color) => {
 connection.on('broadConfig', (jsonConfig) => {
     let realConfig = JSON.parse(jsonConfig);
     console.log("broadConfig", realConfig);
+    if (window.location.search && window.location.search.includes("transparent")) {
+        realConfig.TRANSPARENT = true;
+    }
     config = realConfig;
 });
 
