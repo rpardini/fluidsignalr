@@ -65,6 +65,13 @@ let config = {
     doReinitFramebuffers: false
 };
 
+console.log("querystring", window.location.search);
+
+if (window.location.search && window.location.search.includes("transparent")) {
+    config.TRANSPARENT = true;
+}
+
+
 const canvas = document.getElementsByTagName('canvas')[0];
 resizeCanvas();
 
@@ -1174,8 +1181,8 @@ function render(target) {
     let fbo = target == null ? null : target.fbo;
     if (!config.TRANSPARENT)
         drawColor(fbo, normalizeColor(config.BACK_COLOR));
-    if (target == null && config.TRANSPARENT)
-        drawCheckerboard(fbo);
+    //if (target == null && config.TRANSPARENT)
+    //    drawCheckerboard(fbo);
     drawDisplay(fbo, width, height);
 }
 
