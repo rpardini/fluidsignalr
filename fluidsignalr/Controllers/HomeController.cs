@@ -14,6 +14,7 @@ namespace fluidsignalr.Controllers
 
         public IActionResult Index()
         {
+            Response.Headers["Cache-Control"] = "max-age=0, no-store, no-cache";
             return View();
         }
     }
