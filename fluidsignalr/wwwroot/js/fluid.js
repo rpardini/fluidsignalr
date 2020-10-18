@@ -46,14 +46,14 @@ let config = {
     PRESSURE_ITERATIONS: 3,
     CURL: 45,
     SPLAT_RADIUS: 0.15,
-    SPLAT_FORCE: 50,
+    SPLAT_FORCE: 6000,
     SHADING: true,
     COLORFUL: false,
     COLOR_UPDATE_SPEED: 1,
     PAUSED: false,
     BACK_COLOR: {r: 0x00, g: 0x00, b: 0x00}, //     background-color: #0C1D2D;
     TRANSPARENT: false,
-    BLOOM: false,
+    BLOOM: true,
     BLOOM_ITERATIONS: 8,
     BLOOM_RESOLUTION: 256,
     BLOOM_INTENSITY: 0.8,
@@ -1032,7 +1032,7 @@ startFluid();
 
 function update() {
     const dt = calcDeltaTime();
-    if (config.doReinitFramebuffers | resizeCanvas()) {
+    if (resizeCanvas() || config.doReinitFramebuffers) {
         config.doReinitFramebuffers = false;
         initFramebuffers();
     }
@@ -1323,7 +1323,7 @@ connection.on('broadSplat', (x, y, dx, dy, color) => {
 
 connection.on('broadConfig', (jsonConfig) => {
     let realConfig = JSON.parse(jsonConfig);
-    console.log("broadConfig", realConfig);
+    //console.log("broadConfig", realConfig);
     if (window.location.search && window.location.search.includes("transparent")) {
         realConfig.TRANSPARENT = true;
     }
