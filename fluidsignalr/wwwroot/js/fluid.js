@@ -25,7 +25,7 @@ SOFTWARE.
 'use strict';
 
 // <START SIGNALR CONNECTION>
-const connection = new signalR.HubConnectionBuilder().withUrl("/demo").build();
+const connection = new signalR.HubConnectionBuilder().configureLogging(signalR.LogLevel.Information).withUrl("/demo", 1).withAutomaticReconnect().build();
 
 connection.on('broadcastMessage', (name, message) => {
     console.log('broadcastmessage:', name, message);
@@ -40,7 +40,7 @@ let config = {
     MOBILE_SIM_RESOLUTION: 64,
     SIM_RESOLUTION: 512,
     DYE_RESOLUTION: 1024,
-    DENSITY_DISSIPATION: 0.2*5,
+    DENSITY_DISSIPATION: 0.2 * 5,
     VELOCITY_DISSIPATION: 0.75,
     PRESSURE: 0.1,
     PRESSURE_ITERATIONS: 3,
@@ -60,7 +60,7 @@ let config = {
     BLOOM_THRESHOLD: 0.6,
     BLOOM_SOFT_KNEE: 0.7,
     SUNRAYS: true,
-    SUNRAYS_RESOLUTION: 196*4,
+    SUNRAYS_RESOLUTION: 196 * 4,
     SUNRAYS_WEIGHT: 1.0,
     doReinitFramebuffers: false
 };
@@ -993,7 +993,7 @@ let colorUpdateTimer = 0.0;
 window.fluidHasStarted = false;
 
 function randomSplatsNow(num) {
-    let splats = Math.floor(num );
+    let splats = Math.floor(num);
     let millis = (Math.floor(Math.random() * 12) + 3) * 1000;
     console.log("splatsNow!", splats, "millis", millis);
     multipleSplats(splats);
