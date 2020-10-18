@@ -62,7 +62,7 @@ function midiMessageReceived(event) {
     }
 
     // Korg nanoKONTROL2.
-    if (event.target.name === "nanoKONTROL2 SLIDER/KNOB") {
+    if (event.target.name.toLowerCase().includes("nanokontrol")) {
         // controllerNumber 0 to 7 are the sliders (value 0 to 127)
         // controllerNumber 16 to 23 are the knobs corresponding to the sliders  (value 0 to 127)
         //                  32 to 39 are the S buttons 
