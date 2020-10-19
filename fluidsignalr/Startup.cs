@@ -1,9 +1,14 @@
-﻿using System.Net;
+using System;
+using System.IO;
+using System.Net;
+using fluidsignalr;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 
 namespace fluidsignalr
@@ -17,7 +22,6 @@ namespace fluidsignalr
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<ForwardedHeadersOptions>(options =>
@@ -26,25 +30,33 @@ namespace fluidsignalr
                 options.KnownNetworks.Add(new IPNetwork(IPAddress.Parse("0.0.0.0"), 0));
                 options.ForwardedHeaders = ForwardedHeaders.All;
             });
-            services.AddControllersWithViews();
             services.AddSignalR();
+            services.AddSpaStaticFiles(configuration => { configuration.RootPath = "ClientApp/dist"; });
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment()) app.UseDeveloperExceptionPage();
-
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
             app.UseRouting();
-            app.UseAuthorization();
-            app.UseEndpoints(endpoints =>
+            app.UseEndpoints(endpoints => { endpoints.MapHub<FluidHub>("/fluidhub"); });
+
+            app.UseStaticFiles(new StaticFileOptions
             {
-                endpoints.MapHub<DemoHub>("/demo");
-                endpoints.MapControllerRoute(
-                    "default",
-                    "{controller=Home}/{action=Index}/{id?}");
+                FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(),
+                    Path.Combine("ClientApp", "dist")))
+            });
+
+            app.UseSpa(spa =>
+            {
+                if (env.IsDevelopment())
+                {
+                    spa.Options.StartupTimeout = TimeSpan.FromMinutes(1);
+                    spa.UseProxyToSpaDevelopmentServer("http://localhost:4321");
+                }
+                else
+                {
+                    spa.Options.SourcePath = "ClientApp/dist";
+                    spa.Options.DefaultPage = new PathString("/index.html");
+                }
             });
         }
     }

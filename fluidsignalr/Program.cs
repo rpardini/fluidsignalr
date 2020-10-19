@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Logging;
 
 namespace fluidsignalr
 {
@@ -8,6 +9,7 @@ namespace fluidsignalr
     {
         public static void Main(string[] args)
         {
+            IdentityModelEventSource.ShowPII = true;
             CreateHostBuilder(args).Build().Run();
         }
 

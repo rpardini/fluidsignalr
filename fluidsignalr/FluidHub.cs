@@ -1,11 +1,11 @@
-﻿using System;
+﻿﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 
 namespace fluidsignalr
 {
-    public class DemoHub : Hub
+    public class FluidHub : Hub
     {
         public override Task OnConnectedAsync()
         {
