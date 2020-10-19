@@ -23,7 +23,8 @@ SOFTWARE.
 */
 
 import * as signalR from "@microsoft/signalr";
-import midimessage from "midimessage";
+import WebMidi from 'webmidi';
+import ditheringTextureFile from './LDR_LLL1_0.png';
 
 // <START SIGNALR CONNECTION>
 const connection = new signalR.HubConnectionBuilder().configureLogging(signalR.LogLevel.Information).withUrl("/fluidhub", 1).withAutomaticReconnect().build();
@@ -35,6 +36,7 @@ connection.on('broadcastMessage', (name, message) => {
 connection.start();
 // </START SIGNALR CONNECTION>
 
+let splatHook = null;
 
 let config = {
     MOBILE_DYE_RESOLUTION: 128,
@@ -71,60 +73,185 @@ if (window.location.search && window.location.search.includes("transparent")) {
 }
 
 // <MIDI INIT>
-console.log("MIDI HERE!", "2");
 
-function midiconnect() {
-    navigator.requestMIDIAccess()
-        .then(
-            (midi) => midiReady(midi),
-            (err) => console.log('Something went wrong', err));
+const nanoKontrol2_button_PARAM1_SOLO = 32;
+const nanoKontrol2_button_PARAM2_SOLO = 33;
+const nanoKontrol2_button_PARAM3_SOLO = 34;
+const nanoKontrol2_button_PARAM4_SOLO = 35;
+const nanoKontrol2_button_PARAM5_SOLO = 36;
+const nanoKontrol2_button_PARAM6_SOLO = 37;
+const nanoKontrol2_button_PARAM7_SOLO = 38;
+const nanoKontrol2_button_PARAM8_SOLO = 39;
+const nanoKontrol2_button_PARAM1_MUTE = 48;
+const nanoKontrol2_button_PARAM2_MUTE = 49;
+const nanoKontrol2_button_PARAM3_MUTE = 50;
+const nanoKontrol2_button_PARAM4_MUTE = 51;
+const nanoKontrol2_button_PARAM5_MUTE = 52;
+const nanoKontrol2_button_PARAM6_MUTE = 53;
+const nanoKontrol2_button_PARAM7_MUTE = 54;
+const nanoKontrol2_button_PARAM8_MUTE = 55;
+const nanoKontrol2_button_PARAM1_RECORD = 64;
+const nanoKontrol2_button_PARAM2_RECORD = 65;
+const nanoKontrol2_button_PARAM3_RECORD = 66;
+const nanoKontrol2_button_PARAM4_RECORD = 67;
+const nanoKontrol2_button_PARAM5_RECORD = 68;
+const nanoKontrol2_button_PARAM6_RECORD = 69;
+const nanoKontrol2_button_PARAM7_RECORD = 70;
+const nanoKontrol2_button_PARAM8_RECORD = 71;
+
+const nanoKontrol2_slidersGroupButtons = [
+    [
+        nanoKontrol2_button_PARAM1_SOLO,
+        nanoKontrol2_button_PARAM2_SOLO,
+        nanoKontrol2_button_PARAM3_SOLO,
+        nanoKontrol2_button_PARAM4_SOLO,
+        nanoKontrol2_button_PARAM5_SOLO,
+        nanoKontrol2_button_PARAM6_SOLO,
+        nanoKontrol2_button_PARAM7_SOLO,
+        nanoKontrol2_button_PARAM8_SOLO
+    ],
+    [
+        nanoKontrol2_button_PARAM1_MUTE,
+        nanoKontrol2_button_PARAM2_MUTE,
+        nanoKontrol2_button_PARAM3_MUTE,
+        nanoKontrol2_button_PARAM4_MUTE,
+        nanoKontrol2_button_PARAM5_MUTE,
+        nanoKontrol2_button_PARAM6_MUTE,
+        nanoKontrol2_button_PARAM7_MUTE,
+        nanoKontrol2_button_PARAM8_MUTE
+    ],
+    [
+        nanoKontrol2_button_PARAM1_RECORD,
+        nanoKontrol2_button_PARAM2_RECORD,
+        nanoKontrol2_button_PARAM3_RECORD,
+        nanoKontrol2_button_PARAM4_RECORD,
+        nanoKontrol2_button_PARAM5_RECORD,
+        nanoKontrol2_button_PARAM6_RECORD,
+        nanoKontrol2_button_PARAM7_RECORD,
+        nanoKontrol2_button_PARAM8_RECORD
+    ]
+];
+
+/**
+ * @param event{InputEventControlchange}
+ */
+function midiInControlChange (event) {
+    //console.log("WebMidi got control change", event);
+
+    let understood = false;
+
+    if (event.controller.number === 0) {
+        config.SPLAT_FORCE = Math.floor((event.value / 127) * 10000);
+        if (config.SPLAT_FORCE === 0) config.SPLAT_FORCE = 0.01;
+        console.log("config.SPLAT_FORCE", config.SPLAT_FORCE);
+        understood = true;
+    }
+
+    if (event.controller.number === 1) {
+        config.SPLAT_RADIUS = event.value / 127;
+        if (config.SPLAT_RADIUS === 0) config.SPLAT_RADIUS = 0.01;
+        console.log("config.SPLAT_RADIUS", config.SPLAT_RADIUS);
+        understood = true;
+    }
+
+    if (event.controller.number === 2) {
+        config.DYE_RESOLUTION = 32 + ((event.value / 127) * 1024);
+        console.log("config.DYE_RESOLUTION", config.DYE_RESOLUTION);
+        config.doReinitFramebuffers = true;
+        understood = true;
+    }
+
+
+    if (event.controller.number === 3) {
+        config.SIM_RESOLUTION = 32 + ((event.value / 127) * 1024);
+        console.log("config.SIM_RESOLUTION", config.SIM_RESOLUTION);
+        config.doReinitFramebuffers = true;
+        understood = true;
+    }
+
+    if (event.controller.number === 4) {
+        config.CURL = (event.value / 127) * 50;
+        console.log("config.CURL", config.CURL);
+        understood = true;
+    }
+
+    if (event.controller.number === 7) {
+        config.PRESSURE = (event.value / 127);
+        console.log("config.PRESSURE", config.PRESSURE);
+        understood = true;
+    }
+
+
+    if (event.controller.number === 16) {
+        config.DENSITY_DISSIPATION = ((event.value / 127) - 0.5) * 4;
+        console.log("config.DENSITY_DISSIPATION", config.DENSITY_DISSIPATION);
+        understood = true;
+
+    }
+
+
+    if (event.controller.number === 17) {
+        let knob = (event.value / 127);
+        config.VELOCITY_DISSIPATION = knob * 10;
+        console.log("config.VELOCITY_DISSIPATION", config.VELOCITY_DISSIPATION);
+        understood = true;
+
+    }
+    if (understood) connection.invoke('config', JSON.stringify(config));
+    if (!understood) console.log("Got midi message but not understood: ", event.target.name, "messsageType", event.type, "controllerNumber", event.controller.number, "channel: ", event.channel, "value: ", event.value);
 }
 
-function midiReady(midi) {
-    // Also react to device changes.
-    midi.addEventListener('statechange', (event) => {
-        console.log("midi STATE CHANGE", event);
-        initDevices(event.target);
+function startupMidiSupport () {
+    WebMidi.enable(function (err) {
+        if (err) {
+            console.error("WebMidi could not be enabled.", err);
+        } else {
+            console.log("WebMidi enabled!");
+
+            // Reacting when a new device becomes available
+            WebMidi.addListener("connected", function (e) {
+                // @TODO: event.target.name.toLowerCase().includes("nanokontrol")
+
+                if (e.port.type === "input") {
+                    // don't double add.
+                    e.port.removeListener("controlchange", "all", midiInControlChange);
+                    e.port.addListener("controlchange", "all", midiInControlChange);
+                    console.log("WebMidi input connected", e);
+                } else if (e.port.type === "output") {
+                    // turn off all the LEDs.
+                    nanoKontrol2_slidersGroupButtons.forEach(rows => {
+                        rows.forEach(button => {
+                            e.port.sendControlChange(button, 0);
+                        });
+                    });
+                    splatHook = (x, y, dx, dy, realColor) => {
+                        // x goes from 0.00 to 1.00 (left to right)
+                        let buttonX = Math.ceil((x + 0.00) * 8);
+                        buttonX = buttonX < 1 ? 1 : buttonX;
+                        // y goes from 1.00 to 0.00 (top to bottom)
+                        let buttonY = Math.ceil((1.00 - y) * 3);
+                        buttonY = buttonY < 1 ? 1 : buttonY;
+
+                        // now find the button for that x, y
+                        let theButton = nanoKontrol2_slidersGroupButtons[buttonY-1][buttonX-1];
+
+                        //console.log("splatHook", x, y, "buttons", buttonX, buttonY, "theButton", theButton);
+
+
+                        e.port.sendControlChange(theButton, 127, "all");
+                        e.port.sendControlChange(theButton, 0, "all", {time: "+500"});
+                    }
+                    // hook into the splat received, map into the matrix, turn on leds
+
+                }
+            });
+        }
     });
-    initDevices(midi); // see the next section!
 }
 
 
-function initDevices(midi) {
-    console.log("MIDI initDevices", midi);
-    // Reset.
-    let midiIn = [];
-    let midiOut = [];
-
-    // MIDI devices that send you data.
-    const inputs = midi.inputs.values();
-    for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
-        console.log("One midi input", "name", input.value.name);
-        midiIn.push(input.value);
-    }
-
-    // MIDI devices that you send data to.
-    const outputs = midi.outputs.values();
-    for (let output = outputs.next(); output && !output.done; output = outputs.next()) {
-        midiOut.push(output.value);
-    }
-
-    startListening(midiIn);
-}
-
-
-// Start listening to MIDI messages.
-function startListening(midiIn) {
-    for (const input of midiIn) {
-        console.log("Start midimessage event listener on ", input);
-        input.removeEventListener('midimessage', midiMessageReceived);
-        input.addEventListener('midimessage', midiMessageReceived);
-    }
-}
-
-function midiMessageReceived(event) {
-    let parsed = midimessage(event);
-
+/*
+function oldstuff (event) {
     let understood = false;
 
     if (parsed.messageType === "noteon") {
@@ -134,173 +261,96 @@ function midiMessageReceived(event) {
         }
     }
 
-    // Korg nanoKONTROL2.
-    if (event.target.name.toLowerCase().includes("nanokontrol")) {
-        // controllerNumber 0 to 7 are the sliders (value 0 to 127)
-        // controllerNumber 16 to 23 are the knobs corresponding to the sliders  (value 0 to 127)
-        //                  32 to 39 are the S buttons 
-        //                  48 to 55 are the M buttons
-        //                  64 to 71 are the R buttons
-        // everything is on channel 0.
+    // Traktor
 
-        if (parsed.channel === 0) {
-
-            if (parsed.controllerNumber === 0) {
-                config.SPLAT_FORCE = Math.floor((parsed.controllerValue / 127) * 10000);
-                if (config.SPLAT_FORCE === 0) config.SPLAT_FORCE = 0.01;
-                console.log("config.SPLAT_FORCE", config.SPLAT_FORCE);
+    if (parsed.messageType === "controlchange") {
+        if (parsed.controllerNumber === 42) {
+            // pitch sliders
+            if (parsed.channel === 1) {
+                console.log("LEFT PITCH: ", parsed.controllerValue);
+                // transpose 0 to 0.01, 127 to 1.0
+                config.PRESSURE = (parsed.controllerValue / 127) * 2;
+                console.log("config.PRESSURE", config.PRESSURE);
                 understood = true;
             }
+            if (parsed.channel === 3) {
+                console.log("RIGHT PITCH: ", parsed.controllerValue);
+                // transpose 0 to 0.01, 127 to 1.0
+                config.DYE_RESOLUTION = 32 + ((parsed.controllerValue / 127) * 1024);
+                console.log("config.DYE_RESOLUTION", config.DYE_RESOLUTION);
+                config.doReinitFramebuffers = true;
+                understood = true;
+            }
+        }
 
-            if (parsed.controllerNumber === 1) {
+
+        if (parsed.controllerNumber === 1) {
+            if (parsed.channel === 5) {
+                // the left main level knob. value is 0 to 127.
+                console.log("LEFT LEVEL MAIN: ", parsed.controllerValue);
+                // transpose 0 to 0.01, 127 to 1.0
                 config.SPLAT_RADIUS = parsed.controllerValue / 127;
                 if (config.SPLAT_RADIUS === 0) config.SPLAT_RADIUS = 0.01;
                 console.log("config.SPLAT_RADIUS", config.SPLAT_RADIUS);
                 understood = true;
             }
 
-            if (parsed.controllerNumber === 2) {
-                config.DYE_RESOLUTION = 32 + ((parsed.controllerValue / 127) * 1024);
-                console.log("config.DYE_RESOLUTION", config.DYE_RESOLUTION);
-                config.doReinitFramebuffers = true;
-                understood = true;
-            }
+            if (parsed.channel === 7) {
+                // the left main level knob. value is 0 to 127.
+                console.log("MIXER SLIDER: ", parsed.controllerValue);
+                // transpose 0 to 0, 127 to 1.0
+                //config.PRESSURE = parsed.controllerValue / 127;
+                //console.log("config.PRESSURE", config.PRESSURE);
+                //config.PRESSURE_ITERATIONS = (parsed.controllerValue / 127) * 200;
+                //console.log("config.PRESSURE_ITERATIONS", config.PRESSURE);
 
-
-            if (parsed.controllerNumber === 3) {
-                config.SIM_RESOLUTION = 32 + ((parsed.controllerValue / 127) * 1024);
+                config.SIM_RESOLUTION = 32 + ((parsed.controllerValue / 127) * 128);
                 console.log("config.SIM_RESOLUTION", config.SIM_RESOLUTION);
                 config.doReinitFramebuffers = true;
+
+
                 understood = true;
             }
 
-            if (parsed.controllerNumber === 4) {
+            if (parsed.channel === 6) {
+                // the right main level knob. value is 0 to 127.
+                console.log("RIGHT LEVEL MAIN: ", parsed.controllerValue);
+                // transpose 0 to 0, 127 to 1.0
                 config.CURL = (parsed.controllerValue / 127) * 50;
                 console.log("config.CURL", config.CURL);
                 understood = true;
             }
 
-            if (parsed.controllerNumber === 7) {
-                config.PRESSURE = (parsed.controllerValue / 127);
-                console.log("config.PRESSURE", config.PRESSURE);
-                understood = true;
-            }
 
-
-            if (parsed.controllerNumber === 16) {
+        }
+        if (parsed.controllerNumber === 2) {
+            if (parsed.channel === 5) {
+                console.log("LEFT EFFECT KNOB: ", parsed.controllerValue);
+                // transpose 0 to 0.01, 127 to 1.0
                 config.DENSITY_DISSIPATION = ((parsed.controllerValue / 127) - 0.5) * 4;
                 console.log("config.DENSITY_DISSIPATION", config.DENSITY_DISSIPATION);
                 understood = true;
-
             }
 
-
-            if (parsed.controllerNumber === 17) {
-                let knob = (parsed.controllerValue / 127);
-                config.VELOCITY_DISSIPATION = knob * 10;
+            if (parsed.channel === 6) {
+                console.log("RIGHT EFFECT KNOB: ", parsed.controllerValue);
+                // transpose 0 to 0, 127 to 1.0
+                let knob = (parsed.controllerValue / 127) - 0.5;
+                config.VELOCITY_DISSIPATION = knob * 4;
                 console.log("config.VELOCITY_DISSIPATION", config.VELOCITY_DISSIPATION);
                 understood = true;
-
             }
 
 
         }
 
 
-    } else {
-        // Traktor
-
-        if (parsed.messageType === "controlchange") {
-            if (parsed.controllerNumber === 42) {
-                // pitch sliders
-                if (parsed.channel === 1) {
-                    console.log("LEFT PITCH: ", parsed.controllerValue);
-                    // transpose 0 to 0.01, 127 to 1.0
-                    config.PRESSURE = (parsed.controllerValue / 127) * 2;
-                    console.log("config.PRESSURE", config.PRESSURE);
-                    understood = true;
-                }
-                if (parsed.channel === 3) {
-                    console.log("RIGHT PITCH: ", parsed.controllerValue);
-                    // transpose 0 to 0.01, 127 to 1.0
-                    config.DYE_RESOLUTION = 32 + ((parsed.controllerValue / 127) * 1024);
-                    console.log("config.DYE_RESOLUTION", config.DYE_RESOLUTION);
-                    config.doReinitFramebuffers = true;
-                    understood = true;
-                }
-            }
-
-
-            if (parsed.controllerNumber === 1) {
-                if (parsed.channel === 5) {
-                    // the left main level knob. value is 0 to 127.
-                    console.log("LEFT LEVEL MAIN: ", parsed.controllerValue);
-                    // transpose 0 to 0.01, 127 to 1.0
-                    config.SPLAT_RADIUS = parsed.controllerValue / 127;
-                    if (config.SPLAT_RADIUS === 0) config.SPLAT_RADIUS = 0.01;
-                    console.log("config.SPLAT_RADIUS", config.SPLAT_RADIUS);
-                    understood = true;
-                }
-
-                if (parsed.channel === 7) {
-                    // the left main level knob. value is 0 to 127.
-                    console.log("MIXER SLIDER: ", parsed.controllerValue);
-                    // transpose 0 to 0, 127 to 1.0
-                    //config.PRESSURE = parsed.controllerValue / 127;
-                    //console.log("config.PRESSURE", config.PRESSURE);
-                    //config.PRESSURE_ITERATIONS = (parsed.controllerValue / 127) * 200;
-                    //console.log("config.PRESSURE_ITERATIONS", config.PRESSURE);
-
-                    config.SIM_RESOLUTION = 32 + ((parsed.controllerValue / 127) * 128);
-                    console.log("config.SIM_RESOLUTION", config.SIM_RESOLUTION);
-                    config.doReinitFramebuffers = true;
-
-
-                    understood = true;
-                }
-
-                if (parsed.channel === 6) {
-                    // the right main level knob. value is 0 to 127.
-                    console.log("RIGHT LEVEL MAIN: ", parsed.controllerValue);
-                    // transpose 0 to 0, 127 to 1.0
-                    config.CURL = (parsed.controllerValue / 127) * 50;
-                    console.log("config.CURL", config.CURL);
-                    understood = true;
-                }
-
-
-            }
-            if (parsed.controllerNumber === 2) {
-                if (parsed.channel === 5) {
-                    console.log("LEFT EFFECT KNOB: ", parsed.controllerValue);
-                    // transpose 0 to 0.01, 127 to 1.0
-                    config.DENSITY_DISSIPATION = ((parsed.controllerValue / 127) - 0.5) * 4;
-                    console.log("config.DENSITY_DISSIPATION", config.DENSITY_DISSIPATION);
-                    understood = true;
-                }
-
-                if (parsed.channel === 6) {
-                    console.log("RIGHT EFFECT KNOB: ", parsed.controllerValue);
-                    // transpose 0 to 0, 127 to 1.0
-                    let knob = (parsed.controllerValue / 127) - 0.5;
-                    config.VELOCITY_DISSIPATION = knob * 4;
-                    console.log("config.VELOCITY_DISSIPATION", config.VELOCITY_DISSIPATION);
-                    understood = true;
-                }
-
-
-            }
-
-
-        }
     }
 
-    if (understood) connection.invoke('config', JSON.stringify(config));
-    if (!understood) console.log("Got midi message but not understood: ", event.target.name, "messsageType", parsed.messageType, "controllerNumber", parsed.controllerNumber, "channel: ", parsed.channel, "value: ", parsed.controllerValue, parsed);
-
 }
+*/
 
-midiconnect();
+startupMidiSupport();
 
 // </MIDI INIT>
 
@@ -309,7 +359,7 @@ const canvas = document.getElementsByTagName('canvas')[0];
 resizeCanvas();
 
 
-function pointerPrototype() {
+function pointerPrototype () {
     this.id = -1;
     this.texcoordX = 0;
     this.texcoordY = 0;
@@ -337,7 +387,7 @@ if (!ext.supportLinearFiltering) {
     config.SUNRAYS = false;
 }
 
-function getWebGLContext(canvas) {
+function getWebGLContext (canvas) {
     const params = {alpha: true, depth: false, stencil: false, antialias: false, preserveDrawingBuffer: false};
 
     let gl = canvas.getContext('webgl2', params);
@@ -385,7 +435,7 @@ function getWebGLContext(canvas) {
     };
 }
 
-function getSupportedFormat(gl, internalFormat, format, type) {
+function getSupportedFormat (gl, internalFormat, format, type) {
     if (!supportRenderTextureFormat(gl, internalFormat, format, type)) {
         switch (internalFormat) {
             case gl.R16F:
@@ -403,7 +453,7 @@ function getSupportedFormat(gl, internalFormat, format, type) {
     }
 }
 
-function supportRenderTextureFormat(gl, internalFormat, format, type) {
+function supportRenderTextureFormat (gl, internalFormat, format, type) {
     let texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -421,7 +471,7 @@ function supportRenderTextureFormat(gl, internalFormat, format, type) {
 }
 
 
-function isMobile() {
+function isMobile () {
     return false; // @TODO
     //alert(navigator.userAgent + /Mobi|Android/i.test(navigator.userAgent));
     return /Mobi|Android/i.test(navigator.userAgent);
@@ -429,7 +479,7 @@ function isMobile() {
 
 
 class Material {
-    constructor(vertexShader, fragmentShaderSource) {
+    constructor (vertexShader, fragmentShaderSource) {
         this.vertexShader = vertexShader;
         this.fragmentShaderSource = fragmentShaderSource;
         this.programs = [];
@@ -437,7 +487,7 @@ class Material {
         this.uniforms = [];
     }
 
-    setKeywords(keywords) {
+    setKeywords (keywords) {
         let hash = 0;
         for (let i = 0; i < keywords.length; i++)
             hash += hashCode(keywords[i]);
@@ -455,24 +505,24 @@ class Material {
         this.activeProgram = program;
     }
 
-    bind() {
+    bind () {
         gl.useProgram(this.activeProgram);
     }
 }
 
 class Program {
-    constructor(vertexShader, fragmentShader) {
+    constructor (vertexShader, fragmentShader) {
         this.uniforms = {};
         this.program = createProgram(vertexShader, fragmentShader);
         this.uniforms = getUniforms(this.program);
     }
 
-    bind() {
+    bind () {
         gl.useProgram(this.program);
     }
 }
 
-function createProgram(vertexShader, fragmentShader) {
+function createProgram (vertexShader, fragmentShader) {
     let program = gl.createProgram();
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
@@ -484,7 +534,7 @@ function createProgram(vertexShader, fragmentShader) {
     return program;
 }
 
-function getUniforms(program) {
+function getUniforms (program) {
     let uniforms = [];
     let uniformCount = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
     for (let i = 0; i < uniformCount; i++) {
@@ -494,7 +544,7 @@ function getUniforms(program) {
     return uniforms;
 }
 
-function compileShader(type, source, keywords) {
+function compileShader (type, source, keywords) {
     source = addKeywords(source, keywords);
 
     const shader = gl.createShader(type);
@@ -507,7 +557,7 @@ function compileShader(type, source, keywords) {
     return shader;
 }
 
-function addKeywords(source, keywords) {
+function addKeywords (source, keywords) {
     if (keywords == null) return source;
     let keywordsString = '';
     keywords.forEach(keyword => {
@@ -1013,8 +1063,6 @@ let bloomFramebuffers = [];
 let sunrays;
 let sunraysTemp;
 
-import ditheringTextureFile from './LDR_LLL1_0.png';
-
 let ditheringTexture = createTextureAsync(ditheringTextureFile);
 
 const blurProgram = new Program(blurVertexShader, blurShader);
@@ -1037,7 +1085,7 @@ const gradienSubtractProgram = new Program(baseVertexShader, gradientSubtractSha
 
 const displayMaterial = new Material(baseVertexShader, displayShaderSource);
 
-function initFramebuffers() {
+function initFramebuffers () {
     let simRes = getResolution(config.SIM_RESOLUTION);
     let dyeRes = getResolution(config.DYE_RESOLUTION);
 
@@ -1065,7 +1113,7 @@ function initFramebuffers() {
     initSunraysFramebuffers();
 }
 
-function initBloomFramebuffers() {
+function initBloomFramebuffers () {
     let res = getResolution(config.BLOOM_RESOLUTION);
 
     const texType = ext.halfFloatTexType;
@@ -1086,7 +1134,7 @@ function initBloomFramebuffers() {
     }
 }
 
-function initSunraysFramebuffers() {
+function initSunraysFramebuffers () {
     let res = getResolution(config.SUNRAYS_RESOLUTION);
 
     const texType = ext.halfFloatTexType;
@@ -1097,7 +1145,7 @@ function initSunraysFramebuffers() {
     sunraysTemp = createFBO(res.width, res.height, r.internalFormat, r.format, texType, filtering);
 }
 
-function createFBO(w, h, internalFormat, format, type, param) {
+function createFBO (w, h, internalFormat, format, type, param) {
     gl.activeTexture(gl.TEXTURE0);
     let texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -1123,7 +1171,7 @@ function createFBO(w, h, internalFormat, format, type, param) {
         height: h,
         texelSizeX,
         texelSizeY,
-        attach(id) {
+        attach (id) {
             gl.activeTexture(gl.TEXTURE0 + id);
             gl.bindTexture(gl.TEXTURE_2D, texture);
             return id;
@@ -1131,7 +1179,7 @@ function createFBO(w, h, internalFormat, format, type, param) {
     };
 }
 
-function createDoubleFBO(w, h, internalFormat, format, type, param) {
+function createDoubleFBO (w, h, internalFormat, format, type, param) {
     let fbo1 = createFBO(w, h, internalFormat, format, type, param);
     let fbo2 = createFBO(w, h, internalFormat, format, type, param);
 
@@ -1140,19 +1188,19 @@ function createDoubleFBO(w, h, internalFormat, format, type, param) {
         height: h,
         texelSizeX: fbo1.texelSizeX,
         texelSizeY: fbo1.texelSizeY,
-        get read() {
+        get read () {
             return fbo1;
         },
-        set read(value) {
+        set read (value) {
             fbo1 = value;
         },
-        get write() {
+        get write () {
             return fbo2;
         },
-        set write(value) {
+        set write (value) {
             fbo2 = value;
         },
-        swap() {
+        swap () {
             let temp = fbo1;
             fbo1 = fbo2;
             fbo2 = temp;
@@ -1160,7 +1208,7 @@ function createDoubleFBO(w, h, internalFormat, format, type, param) {
     }
 }
 
-function resizeFBO(target, w, h, internalFormat, format, type, param) {
+function resizeFBO (target, w, h, internalFormat, format, type, param) {
     let newFBO = createFBO(w, h, internalFormat, format, type, param);
     copyProgram.bind();
     gl.uniform1i(copyProgram.uniforms.uTexture, target.attach(0));
@@ -1168,7 +1216,7 @@ function resizeFBO(target, w, h, internalFormat, format, type, param) {
     return newFBO;
 }
 
-function resizeDoubleFBO(target, w, h, internalFormat, format, type, param) {
+function resizeDoubleFBO (target, w, h, internalFormat, format, type, param) {
     if (target.width == w && target.height == h)
         return target;
     target.read = resizeFBO(target.read, w, h, internalFormat, format, type, param);
@@ -1180,7 +1228,7 @@ function resizeDoubleFBO(target, w, h, internalFormat, format, type, param) {
     return target;
 }
 
-function createTextureAsync(url) {
+function createTextureAsync (url) {
     let texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -1193,7 +1241,7 @@ function createTextureAsync(url) {
         texture,
         width: 1,
         height: 1,
-        attach(id) {
+        attach (id) {
             gl.activeTexture(gl.TEXTURE0 + id);
             gl.bindTexture(gl.TEXTURE_2D, texture);
             return id;
@@ -1202,7 +1250,7 @@ function createTextureAsync(url) {
 
     let image = new Image();
     image.onload = () => {
-        console.log("Image LOADED!");  
+        console.log("Image LOADED!");
         obj.width = image.width;
         obj.height = image.height;
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -1214,7 +1262,7 @@ function createTextureAsync(url) {
     return obj;
 }
 
-function updateKeywords() {
+function updateKeywords () {
     let displayKeywords = [];
     if (config.SHADING) displayKeywords.push("SHADING");
     if (config.BLOOM) displayKeywords.push("BLOOM");
@@ -1231,7 +1279,7 @@ let colorUpdateTimer = 0.0;
 
 window.fluidHasStarted = false;
 
-function randomSplatsNow(num) {
+function randomSplatsNow (num) {
     let splats = Math.floor(num);
     let millis = (Math.floor(Math.random() * 12) + 3) * 1000;
     console.log("splatsNow!", splats, "millis", millis);
@@ -1239,7 +1287,7 @@ function randomSplatsNow(num) {
 }
 
 
-function randomSplatsAndSeconds() {
+function randomSplatsAndSeconds () {
     let splats = Math.floor(Math.random() * 3) + 1;
     let millis = (Math.floor(Math.random() * 12) + 3) * 1000;
 
@@ -1248,7 +1296,7 @@ function randomSplatsAndSeconds() {
     setTimeout(randomSplatsAndSeconds, millis);
 }
 
-function startFluid() {
+function startFluid () {
     if (window.fluidHasStarted) {
         console.log("Fluid has already been started...");
         return;
@@ -1269,7 +1317,7 @@ function startFluid() {
 
 startFluid();
 
-function update() {
+function update () {
     const dt = calcDeltaTime();
     if (resizeCanvas() || config.doReinitFramebuffers) {
         config.doReinitFramebuffers = false;
@@ -1283,7 +1331,7 @@ function update() {
     requestAnimationFrame(update);
 }
 
-function calcDeltaTime() {
+function calcDeltaTime () {
     let now = Date.now();
     let dt = (now - lastUpdateTime) / 1000;
     dt = Math.min(dt, 0.016666);
@@ -1291,7 +1339,7 @@ function calcDeltaTime() {
     return dt;
 }
 
-function resizeCanvas() {
+function resizeCanvas () {
     //console.log("Resizing canvas, ", canvas.clientWidth, canvas.clientHeight);
     let width = scaleByPixelRatio(canvas.clientWidth);
     let height = scaleByPixelRatio(canvas.clientHeight);
@@ -1304,7 +1352,7 @@ function resizeCanvas() {
     return false;
 }
 
-function updateColors(dt) {
+function updateColors (dt) {
     if (!config.COLORFUL) return;
 
     colorUpdateTimer += dt * config.COLOR_UPDATE_SPEED;
@@ -1316,7 +1364,7 @@ function updateColors(dt) {
     }
 }
 
-function applyInputs() {
+function applyInputs () {
     if (splatStack.length > 0)
         multipleSplats(splatStack.pop());
 
@@ -1328,7 +1376,7 @@ function applyInputs() {
     });
 }
 
-function step(dt) {
+function step (dt) {
     gl.disable(gl.BLEND);
     gl.viewport(0, 0, velocity.width, velocity.height);
 
@@ -1396,7 +1444,7 @@ function step(dt) {
     dye.swap();
 }
 
-function render(target) {
+function render (target) {
     if (config.BLOOM)
         applyBloom(dye.read, bloom);
     if (config.SUNRAYS) {
@@ -1423,19 +1471,19 @@ function render(target) {
     drawDisplay(fbo, width, height);
 }
 
-function drawColor(fbo, color) {
+function drawColor (fbo, color) {
     colorProgram.bind();
     gl.uniform4f(colorProgram.uniforms.color, color.r, color.g, color.b, 1);
     blit(fbo);
 }
 
-function drawCheckerboard(fbo) {
+function drawCheckerboard (fbo) {
     checkerboardProgram.bind();
     gl.uniform1f(checkerboardProgram.uniforms.aspectRatio, canvas.width / canvas.height);
     blit(fbo);
 }
 
-function drawDisplay(fbo, width, height) {
+function drawDisplay (fbo, width, height) {
     displayMaterial.bind();
     if (config.SHADING)
         gl.uniform2f(displayMaterial.uniforms.texelSize, 1.0 / width, 1.0 / height);
@@ -1451,7 +1499,7 @@ function drawDisplay(fbo, width, height) {
     blit(fbo);
 }
 
-function applyBloom(source, destination) {
+function applyBloom (source, destination) {
     if (bloomFramebuffers.length < 2)
         return;
 
@@ -1500,7 +1548,7 @@ function applyBloom(source, destination) {
     blit(destination.fbo);
 }
 
-function applySunrays(source, mask, destination) {
+function applySunrays (source, mask, destination) {
     gl.disable(gl.BLEND);
     sunraysMaskProgram.bind();
     gl.uniform1i(sunraysMaskProgram.uniforms.uTexture, source.attach(0));
@@ -1514,7 +1562,7 @@ function applySunrays(source, mask, destination) {
     blit(destination.fbo);
 }
 
-function blur(target, temp, iterations) {
+function blur (target, temp, iterations) {
     blurProgram.bind();
     for (let i = 0; i < iterations; i++) {
         gl.uniform2f(blurProgram.uniforms.texelSize, target.texelSizeX, 0.0);
@@ -1527,13 +1575,13 @@ function blur(target, temp, iterations) {
     }
 }
 
-function send_splatPointer(pointer) {
+function send_splatPointer (pointer) {
     let dx = pointer.deltaX * config.SPLAT_FORCE;
     let dy = pointer.deltaY * config.SPLAT_FORCE;
     send_splat(pointer.texcoordX, pointer.texcoordY, dx, dy, pointer.color);
 }
 
-function multipleSplats(amount) {
+function multipleSplats (amount) {
     for (let i = 0; i < amount; i++) {
         const color = generateColor();
         color.r *= 10.0;
@@ -1547,7 +1595,7 @@ function multipleSplats(amount) {
     }
 }
 
-function send_splat(x, y, dx, dy, color) {
+function send_splat (x, y, dx, dy, color) {
     //splat(x, y, dx, dy, color);
     //return;
     //console.log("send_splat", x, y, dx, dy, color);
@@ -1557,6 +1605,7 @@ function send_splat(x, y, dx, dy, color) {
 connection.on('broadSplat', (x, y, dx, dy, color) => {
     let realColor = JSON.parse(color);
     //console.log("broadSplat", x, y, dx, dy, realColor);
+    if (splatHook) splatHook(x, y, dx, dy, realColor);
     splat(x, y, dx, dy, realColor);
 });
 
@@ -1570,7 +1619,7 @@ connection.on('broadConfig', (jsonConfig) => {
 });
 
 
-function splat(x, y, dx, dy, color) {
+function splat (x, y, dx, dy, color) {
     gl.viewport(0, 0, velocity.width, velocity.height);
     splatProgram.bind();
     gl.uniform1i(splatProgram.uniforms.uTarget, velocity.read.attach(0));
@@ -1588,7 +1637,7 @@ function splat(x, y, dx, dy, color) {
     dye.swap();
 }
 
-function correctRadius(radius) {
+function correctRadius (radius) {
     let aspectRatio = canvas.width / canvas.height;
     if (aspectRatio > 1)
         radius *= aspectRatio;
@@ -1656,7 +1705,7 @@ window.addEventListener('keydown', e => {
         splatStack.push(parseInt(Math.random() * 20) + 5);
 });
 
-function updatePointerDownData(pointer, id, posX, posY) {
+function updatePointerDownData (pointer, id, posX, posY) {
     pointer.id = id;
     pointer.down = true;
     pointer.moved = false;
@@ -1669,7 +1718,7 @@ function updatePointerDownData(pointer, id, posX, posY) {
     pointer.color = generateColor();
 }
 
-function updatePointerMoveData(pointer, posX, posY) {
+function updatePointerMoveData (pointer, posX, posY) {
     pointer.prevTexcoordX = pointer.texcoordX;
     pointer.prevTexcoordY = pointer.texcoordY;
     pointer.texcoordX = posX / canvas.width;
@@ -1679,23 +1728,23 @@ function updatePointerMoveData(pointer, posX, posY) {
     pointer.moved = Math.abs(pointer.deltaX) > 0 || Math.abs(pointer.deltaY) > 0;
 }
 
-function updatePointerUpData(pointer) {
+function updatePointerUpData (pointer) {
     pointer.down = false;
 }
 
-function correctDeltaX(delta) {
+function correctDeltaX (delta) {
     let aspectRatio = canvas.width / canvas.height;
     if (aspectRatio < 1) delta *= aspectRatio;
     return delta;
 }
 
-function correctDeltaY(delta) {
+function correctDeltaY (delta) {
     let aspectRatio = canvas.width / canvas.height;
     if (aspectRatio > 1) delta /= aspectRatio;
     return delta;
 }
 
-function generateColor() {
+function generateColor () {
     let c = HSVtoRGB(Math.random(), 1.0, 1.0);
     c.r *= 0.15;
     c.g *= 0.15;
@@ -1703,7 +1752,7 @@ function generateColor() {
     return c;
 }
 
-function HSVtoRGB(h, s, v) {
+function HSVtoRGB (h, s, v) {
     let r, g, b, i, f, p, q, t;
     i = Math.floor(h * 6);
     f = h * 6 - i;
@@ -1739,7 +1788,7 @@ function HSVtoRGB(h, s, v) {
     };
 }
 
-function normalizeColor(input) {
+function normalizeColor (input) {
     let output = {
         r: input.r / 255,
         g: input.g / 255,
@@ -1748,13 +1797,13 @@ function normalizeColor(input) {
     return output;
 }
 
-function wrap(value, min, max) {
+function wrap (value, min, max) {
     let range = max - min;
     if (range == 0) return min;
     return (value - min) % range + min;
 }
 
-function getResolution(resolution) {
+function getResolution (resolution) {
     let aspectRatio = gl.drawingBufferWidth / gl.drawingBufferHeight;
     if (aspectRatio < 1)
         aspectRatio = 1.0 / aspectRatio;
@@ -1768,19 +1817,19 @@ function getResolution(resolution) {
         return {width: min, height: max};
 }
 
-function getTextureScale(texture, width, height) {
+function getTextureScale (texture, width, height) {
     return {
         x: width / texture.width,
         y: height / texture.height
     };
 }
 
-function scaleByPixelRatio(input) {
+function scaleByPixelRatio (input) {
     let pixelRatio = window.devicePixelRatio || 1;
     return Math.floor(input * pixelRatio);
 }
 
-function hashCode(s) {
+function hashCode (s) {
     if (s.length == 0) return 0;
     let hash = 0;
     for (let i = 0; i < s.length; i++) {
