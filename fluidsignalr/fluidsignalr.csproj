@@ -32,11 +32,6 @@
   </ItemGroup>
 
   <Target Name="PublishRunParcel" AfterTargets="ComputeFilesToPublish">
-    <RemoveDir Directories="ClientApp\dist" />
-    <Message Importance="high" Text="Parcel build..." />
-    <Exec WorkingDirectory="ClientApp" Command="npm run build" />
-    <Message Importance="high" Text="Parcel build finished." />
-
     <ItemGroup>
       <DistFiles Include="ClientApp\dist\**" />
       <ResolvedFileToPublish Include="@(DistFiles->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
