@@ -5,7 +5,7 @@ using Microsoft.IdentityModel.Logging;
 
 namespace fluidsignalr
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {
@@ -26,9 +26,9 @@ namespace fluidsignalr
                         {
                             serverOptions.ListenAnyIP(5001, options => { options.UseHttps(); });
                         }
-                        catch (Exception e)
+                        catch (InvalidOperationException ignored)
                         {
-                            Console.Out.WriteLine("Could not bind 5001: " + e.Message);
+                            Console.Out.WriteLine("Could not bind 5001: " + ignored.GetType().Name + ":" + ignored.Message);
                         }
                     });
                 });

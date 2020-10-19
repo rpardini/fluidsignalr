@@ -1,9 +1,10 @@
-# directories
 **/bin/
 **/obj/
 **/out/
-
-# files
-Dockerfile*
-**/*.trx
+demo
+.git
 **/*.md
+
+**/.cache
+**/dist
+**/node_modules

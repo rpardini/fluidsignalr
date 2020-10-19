@@ -30,3 +30,7 @@ artifacts/
 .Microsoft.DotNet.ImageBuilder
 
 .DS_Store
+
+fluidsignalr/ClientApp/.cache
+fluidsignalr/ClientApp/dist
+fluidsignalr/ClientApp/node_modules
