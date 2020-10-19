@@ -56,10 +56,10 @@ namespace fluidsignalr
                     }
                     else
                     {
-                        // Cache all static resources for 1 year (versioned filenames)
+                        // Cache all static resources for 1 year (versioned filenames), unless Development mode.
                         var headers = ctx.Context.Response.GetTypedHeaders();
                         headers.CacheControl = new CacheControlHeaderValue
-                            {Public = true, MaxAge = TimeSpan.FromDays(365)};
+                            {Public = true, MaxAge = (env.IsDevelopment()) ? TimeSpan.FromDays(0) : TimeSpan.FromDays(365)};
                     }
                 }
             });
