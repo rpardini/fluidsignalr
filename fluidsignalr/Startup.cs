@@ -16,6 +16,9 @@ namespace fluidsignalr
 {
     public class Startup
     {
+        const string ClientAppRootPath = "ClientApp/dist";
+        const string IndexHtmlPath = "/index.html";
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -32,7 +35,7 @@ namespace fluidsignalr
                 options.ForwardedHeaders = ForwardedHeaders.All;
             });
             services.AddSignalR();
-            services.AddSpaStaticFiles(configuration => { configuration.RootPath = "ClientApp/dist"; });
+            services.AddSpaStaticFiles(configuration => { configuration.RootPath = ClientAppRootPath; });
         }
 
         public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -44,7 +47,7 @@ namespace fluidsignalr
             {
                 OnPrepareResponse = ctx =>
                 {
-                    if (ctx.Context.Request.Path.StartsWithSegments("/index.html", StringComparison.InvariantCulture))
+                    if (ctx.Context.Request.Path.StartsWithSegments(IndexHtmlPath, StringComparison.InvariantCulture))
                     {
                         // Do not cache explicit `/index.html` See also: `DefaultPageStaticFileOptions` below for implicit "/index.html"
                         var headers = ctx.Context.Response.GetTypedHeaders();
@@ -71,8 +74,8 @@ namespace fluidsignalr
                 }
                 else
                 {
-                    spa.Options.SourcePath = "ClientApp/dist";
-                    spa.Options.DefaultPage = new PathString("/index.html");
+                    spa.Options.SourcePath = ClientAppRootPath;
+                    spa.Options.DefaultPage = new PathString(IndexHtmlPath);
                     spa.Options.DefaultPageStaticFileOptions = new StaticFileOptions()
                     {
                         OnPrepareResponse = ctx =>
