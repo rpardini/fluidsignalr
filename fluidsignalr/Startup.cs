@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Net.Http.Headers;
 
 namespace fluidsignalr
 {
@@ -39,11 +40,27 @@ namespace fluidsignalr
             app.UseRouting();
             app.UseEndpoints(endpoints => { endpoints.MapHub<FluidHub>("/fluidhub"); });
 
-            app.UseStaticFiles(new StaticFileOptions
+            app.UseSpaStaticFiles(new StaticFileOptions()
             {
-                FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(),
-                    Path.Combine("ClientApp", "dist")))
+                OnPrepareResponse = ctx =>
+                {
+                    if (ctx.Context.Request.Path.StartsWithSegments("/index.html", StringComparison.InvariantCulture))
+                    {
+                        // Do not cache explicit `/index.html` See also: `DefaultPageStaticFileOptions` below for implicit "/index.html"
+                        var headers = ctx.Context.Response.GetTypedHeaders();
+                        headers.CacheControl = new CacheControlHeaderValue
+                            {Public = true, MaxAge = TimeSpan.FromDays(0)};
+                    }
+                    else
+                    {
+                        // Cache all static resources for 1 year (versioned filenames)
+                        var headers = ctx.Context.Response.GetTypedHeaders();
+                        headers.CacheControl = new CacheControlHeaderValue
+                            {Public = true, MaxAge = TimeSpan.FromDays(365)};
+                    }
+                }
             });
+
 
             app.UseSpa(spa =>
             {
@@ -56,6 +73,16 @@ namespace fluidsignalr
                 {
                     spa.Options.SourcePath = "ClientApp/dist";
                     spa.Options.DefaultPage = new PathString("/index.html");
+                    spa.Options.DefaultPageStaticFileOptions = new StaticFileOptions()
+                    {
+                        OnPrepareResponse = ctx =>
+                        {
+                            // Do not cache implicit `/index.html` at the root.  See also: `UseSpaStaticFiles` above
+                            var headers = ctx.Context.Response.GetTypedHeaders();
+                            headers.CacheControl = new CacheControlHeaderValue
+                                {Public = true, MaxAge = TimeSpan.FromDays(0)};
+                        }
+                    };
                 }
             });
         }
