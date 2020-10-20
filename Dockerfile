@@ -1,4 +1,5 @@
 FROM node:14-alpine as nodebuilder
+RUN apk add --no-cache util-linux # for lscpu needed by parcel
 WORKDIR /js
 COPY fluidsignalr/ClientApp/package*.json /js/
 RUN npm ci
