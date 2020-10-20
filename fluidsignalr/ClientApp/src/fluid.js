@@ -45,6 +45,7 @@ import curlShaderSource from "./shaders/curlShader.glsl";
 import vorticityShaderSource from "./shaders/vorticityShader.glsl";
 import pressureShaderSource from "./shaders/pressureShader.glsl";
 import gradientSubtractShaderSource from "./shaders/gradientSubtractShader.glsl";
+import screenfull from "screenfull";
 
 // <START SIGNALR CONNECTION>
 const connection = new signalR.HubConnectionBuilder().configureLogging(signalR.LogLevel.Information).withUrl("/fluidhub", 1).withAutomaticReconnect().build();
@@ -163,20 +164,20 @@ function midiInControlChange (event) {
     if (event.controller.number === 0) {
         config.SPLAT_FORCE = Math.floor((event.value / 127) * 10000);
         if (config.SPLAT_FORCE === 0) config.SPLAT_FORCE = 0.01;
-        console.log("config.SPLAT_FORCE", config.SPLAT_FORCE);
+        canvasLog("SPLAT_FORCE", config.SPLAT_FORCE);
         understood = true;
     }
 
     if (event.controller.number === 1) {
         config.SPLAT_RADIUS = event.value / 127;
         if (config.SPLAT_RADIUS === 0) config.SPLAT_RADIUS = 0.01;
-        console.log("config.SPLAT_RADIUS", config.SPLAT_RADIUS);
+        canvasLog("SPLAT_RADIUS", config.SPLAT_RADIUS);
         understood = true;
     }
 
     if (event.controller.number === 2) {
         config.DYE_RESOLUTION = 32 + ((event.value / 127) * 1024);
-        console.log("config.DYE_RESOLUTION", config.DYE_RESOLUTION);
+        canvasLog("DYE_RESOLUTION", config.DYE_RESOLUTION);
         config.doReinitFramebuffers = true;
         understood = true;
     }
@@ -184,27 +185,27 @@ function midiInControlChange (event) {
 
     if (event.controller.number === 3) {
         config.SIM_RESOLUTION = 32 + ((event.value / 127) * 1024);
-        console.log("config.SIM_RESOLUTION", config.SIM_RESOLUTION);
+        canvasLog("SIM_RESOLUTION", config.SIM_RESOLUTION);
         config.doReinitFramebuffers = true;
         understood = true;
     }
 
     if (event.controller.number === 4) {
         config.CURL = (event.value / 127) * 50;
-        console.log("config.CURL", config.CURL);
+        canvasLog("CURL", config.CURL);
         understood = true;
     }
 
     if (event.controller.number === 7) {
         config.PRESSURE = (event.value / 127);
-        console.log("config.PRESSURE", config.PRESSURE);
+        canvasLog("PRESSURE", config.PRESSURE);
         understood = true;
     }
 
 
     if (event.controller.number === 16) {
         config.DENSITY_DISSIPATION = ((event.value / 127) - 0.5) * 4;
-        console.log("config.DENSITY_DISSIPATION", config.DENSITY_DISSIPATION);
+        canvasLog("DENSITY_DISSIPATION", config.DENSITY_DISSIPATION);
         understood = true;
 
     }
@@ -213,12 +214,15 @@ function midiInControlChange (event) {
     if (event.controller.number === 17) {
         let knob = (event.value / 127);
         config.VELOCITY_DISSIPATION = knob * 10;
-        console.log("config.VELOCITY_DISSIPATION", config.VELOCITY_DISSIPATION);
+        canvasLog("VELOCITY_DISSIPATION", config.VELOCITY_DISSIPATION);
         understood = true;
 
     }
     if (understood) connection.invoke('config', JSON.stringify(config));
-    if (!understood) console.log("Got midi message but not understood: ", event.target.name, "messsageType", event.type, "controllerNumber", event.controller.number, "channel: ", event.channel, "value: ", event.value);
+    if (!understood) {
+        canvasLog(`MIDI: ${event.controller.number}/${event.value} on '${event.target.name}'`);
+        console.warn("Got midi message but not understood: ", event.target.name, "messsageType", event.type, "controllerNumber", event.controller.number, "channel: ", event.channel, "value: ", event.value);
+    }
 }
 
 function startupMidiSupport () {
@@ -376,7 +380,43 @@ startupMidiSupport();
 
 
 const canvas = document.getElementsByTagName('canvas')[0];
+const msgElement = document.getElementById("msg");
+let isMsgVisible = false;
+let msgTimeout = null;
+
+// Hook up user event to make it fullscreen when it is clicked.
+canvas.addEventListener('click', () => {
+    if (screenfull.isEnabled) {
+        if (!screenfull.isFullscreen) {
+            screenfull.request().then(value => {
+                console.log("Yeah, full screen", value);
+            })
+        }
+    } else {
+        console.warn("screenfull NOT ENABLED!");
+    }
+});
+
 resizeCanvas();
+
+function canvasLog (...log) {
+    if (msgElement) {
+        if (!isMsgVisible) {
+            msgElement.style.display = "block";
+            isMsgVisible = true;
+        }
+        msgElement.innerText = log.join(" ");
+
+        // cancel the last timeout if it's there already
+        if (msgTimeout) clearTimeout(msgTimeout);
+
+        // Now set a timeout to hide it again after a while
+        msgTimeout = setTimeout(() => {
+            msgElement.style.display = "none";
+            isMsgVisible = false;
+        }, 500);
+    }
+}
 
 
 function pointerPrototype () {
