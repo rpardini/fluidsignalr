@@ -18,6 +18,8 @@ namespace fluidsignalr
     {
         const string ClientAppRootPath = "ClientApp/dist";
         const string IndexHtmlPath = "/index.html";
+        const string WebManifestPath = "/manifest.webmanifest";
+        const string BrowserConfigPath = "/browserconfig.xml";
 
         public Startup(IConfiguration configuration)
         {
@@ -47,7 +49,9 @@ namespace fluidsignalr
             {
                 OnPrepareResponse = ctx =>
                 {
-                    if (ctx.Context.Request.Path.StartsWithSegments(IndexHtmlPath, StringComparison.InvariantCulture))
+                    if (ctx.Context.Request.Path.StartsWithSegments(IndexHtmlPath, StringComparison.InvariantCulture) ||
+                        ctx.Context.Request.Path.StartsWithSegments(WebManifestPath, StringComparison.InvariantCulture) ||
+                        ctx.Context.Request.Path.StartsWithSegments(BrowserConfigPath, StringComparison.InvariantCulture))
                     {
                         // Do not cache explicit `/index.html` See also: `DefaultPageStaticFileOptions` below for implicit "/index.html"
                         var headers = ctx.Context.Response.GetTypedHeaders();
@@ -59,7 +63,10 @@ namespace fluidsignalr
                         // Cache all static resources for 1 year (versioned filenames), unless Development mode.
                         var headers = ctx.Context.Response.GetTypedHeaders();
                         headers.CacheControl = new CacheControlHeaderValue
-                            {Public = true, MaxAge = (env.IsDevelopment()) ? TimeSpan.FromDays(0) : TimeSpan.FromDays(365)};
+                        {
+                            Public = true,
+                            MaxAge = (env.IsDevelopment()) ? TimeSpan.FromDays(0) : TimeSpan.FromDays(365)
+                        };
                     }
                 }
             });
