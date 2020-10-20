@@ -385,7 +385,7 @@ let isMsgVisible = false;
 let msgTimeout = null;
 
 // Hook up user event to make it fullscreen when it is clicked.
-canvas.addEventListener('click', () => {
+let makeFullScreen = () => {
     if (screenfull.isEnabled) {
         if (!screenfull.isFullscreen) {
             screenfull.request().then(value => {
@@ -395,7 +395,9 @@ canvas.addEventListener('click', () => {
     } else {
         console.warn("screenfull NOT ENABLED!");
     }
-});
+};
+canvas.addEventListener('click', makeFullScreen);
+canvas.addEventListener('touchstart', makeFullScreen);
 
 resizeCanvas();
 
