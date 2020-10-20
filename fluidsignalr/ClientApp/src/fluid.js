@@ -389,6 +389,7 @@ let makeFullScreen = () => {
     if (screenfull.isEnabled) {
         if (!screenfull.isFullscreen) {
             screenfull.request().then(value => {
+                resizeCanvas();
                 console.log("Yeah, full screen", value);
             })
         }
