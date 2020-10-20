@@ -27,7 +27,7 @@
     "theme": "black",
     "start_url": "/",
     "generateIconOptions": {
-      "baseIcon": "./src/app_icon_round.png",
+      "baseIcon": "./src/logo.svg",
       "sizes": [
         96,
         152,
