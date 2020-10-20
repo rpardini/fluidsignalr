@@ -26,6 +26,7 @@
     "shortName": "Fluid",
     "theme": "black",
     "start_url": "/",
+    "display": "fullscreen",
     "generateIconOptions": {
       "baseIcon": "./src/logo.svg",
       "sizes": [

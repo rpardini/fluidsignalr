@@ -89,7 +89,7 @@ let config = {
     doReinitFramebuffers: false
 };
 
-if (window.location.search && window.location.search.includes("transparent")) {
+if (queryStringContains("transparent")) {
     config.TRANSPARENT = true;
 }
 
@@ -385,20 +385,22 @@ let isMsgVisible = false;
 let msgTimeout = null;
 
 // Hook up user event to make it fullscreen when it is clicked.
-let makeFullScreen = () => {
-    if (screenfull.isEnabled) {
-        if (!screenfull.isFullscreen) {
-            screenfull.request().then(value => {
-                resizeCanvas();
-                console.log("Yeah, full screen", value);
-            })
+if (queryStringContains("fullscreen")) {
+    let makeFullScreen = () => {
+        if (screenfull.isEnabled) {
+            if (!screenfull.isFullscreen) {
+                screenfull.request().then(value => {
+                    resizeCanvas();
+                    console.log("Yeah, full screen", value);
+                })
+            }
+        } else {
+            console.warn("screenfull NOT ENABLED!");
         }
-    } else {
-        console.warn("screenfull NOT ENABLED!");
-    }
-};
-canvas.addEventListener('click', makeFullScreen);
-canvas.addEventListener('touchstart', makeFullScreen);
+    };
+    canvas.addEventListener('click', makeFullScreen);
+    canvas.addEventListener('touchstart', makeFullScreen);
+}
 
 resizeCanvas();
 
@@ -1242,12 +1244,15 @@ connection.on('broadSplat', (x, y, dx, dy, color) => {
 connection.on('broadConfig', (jsonConfig) => {
     let realConfig = JSON.parse(jsonConfig);
     //console.log("broadConfig", realConfig);
-    if (window.location.search && window.location.search.includes("transparent")) {
+    if (queryStringContains("transparent")) {
         realConfig.TRANSPARENT = true;
     }
     config = realConfig;
 });
 
+function queryStringContains (txt) {
+    return (window.location.search && window.location.search.includes(txt));
+}
 
 function splat (x, y, dx, dy, color) {
     gl.viewport(0, 0, velocity.width, velocity.height);
