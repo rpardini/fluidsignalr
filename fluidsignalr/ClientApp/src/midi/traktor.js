@@ -90,3 +90,17 @@ export function midiInControlChange (event, config, logger) {
         logger(`MIDI CC: ${event.controller.number}/${event.value} channel ${event.channel} on '${event.target.name}'`);
     }
 }
+
+
+/**
+ * @param port{Output}
+ * @returns {splatHook}
+ */
+/*
+export function midiSplatHandler (port) {
+    // @TODO: who knows what messages light up the leds on the traktor?
+    for (let i = 1; i < 120; i++) {
+        port.sendControlChange(i, 127, "all");
+    }
+}
+*/
