@@ -89,6 +89,8 @@ export function midiInControlChange (event, config, logger) {
     if (!understood) {
         logger(`MIDI CC: ${event.controller.number}/${event.value} channel ${event.channel} on '${event.target.name}'`);
     }
+
+    return understood;
 }
 
 
