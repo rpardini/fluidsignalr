@@ -49,9 +49,10 @@ import pressureShaderSource from "./shaders/pressureShader.glsl";
 import gradientSubtractShaderSource from "./shaders/gradientSubtractShader.glsl";
 import * as midi_nanoKontrol from "./midi/nanokontrol2.js";
 import * as midi_traktor from "./midi/traktor.js";
+import * as midi_generic from "./midi/generic.js";
 
 // ordered midi modules
-const midiModules = [midi_nanoKontrol, midi_traktor];
+const midiModules = [midi_nanoKontrol, midi_traktor, midi_generic];
 
 
 // <START SIGNALR CONNECTION>
@@ -109,10 +110,9 @@ function startupMidiSupport () {
             console.log("WebMidi enabled!");
             // Reacting when a new device becomes available.
             WebMidi.addListener("connected", function (e) {
-                let someModuleSupport = false;
                 for (const module of midiModules) {
                     if (module.isSupportedDevice(e.port.manufacturer, e.port.name)) {
-                        someModuleSupport = true;
+                        console.log(`Module '${module.name}' supports '${e.port.name}'!`);
                         canvasLog(`Module '${module.name}' supports '${e.port.name}'!`);
 
                         if (e.port.type === "input") {
@@ -133,14 +133,13 @@ function startupMidiSupport () {
                             }
 
                         } else if (e.port.type === "output") {
+                            // @TODO: if more than one module/output only the last one will get it.
                             if (module.midiSplatHandler) {
                                 splatHook = module.midiSplatHandler(e.port);
                             }
                         }
+                        break; // first module to support will "get it"; generic always supports
                     }
-                }
-                if (!someModuleSupport) {
-                    canvasLog(`No module seems to support '${e.port.name}'!`);
                 }
             });
         }

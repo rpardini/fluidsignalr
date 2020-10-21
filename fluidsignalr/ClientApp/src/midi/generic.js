@@ -17,10 +17,10 @@ export function isSupportedDevice (manufacturer, name) {
  * @param randomSplatsNow{function}
  */
 export function midiInNoteOn (event, config, logger, randomSplatsNow) {
-    let understood = false;
-    if (!understood) {
-        logger(`MIDI Note: ${event.note.name} (${event.note.number}) channel ${event.channel} on '${event.target.name}'`);
-    }
+    logger(`Generic MIDI Note: ${event.note.name} (${event.note.number}) channel ${event.channel} on '${event.target.name}'`);
+    let numRandomSplats = (event.note.number % 10);
+    randomSplatsNow(numRandomSplats > 0 ? numRandomSplats : 1);
+    return false; // do not broadcast config change.
 }
 
 /**
@@ -29,8 +29,8 @@ export function midiInNoteOn (event, config, logger, randomSplatsNow) {
  * @param logger{function}
  */
 export function midiInControlChange (event, config, logger) {
-    let understood = false;
-    if (!understood) {
-        logger(`MIDI CC: ${event.controller.number}/${event.value} channel ${event.channel} on '${event.target.name}'`);
-    }
+    config.SPLAT_RADIUS = event.value / 127;
+    if (config.SPLAT_RADIUS === 0) config.SPLAT_RADIUS = 0.01;
+    logger(`SPLAT_RADIUS: ${config.SPLAT_RADIUS} - Generic MIDI CC: ${event.controller.number}/${event.value} channel ${event.channel} on '${event.target.name}'`);
+    return true;
 }
