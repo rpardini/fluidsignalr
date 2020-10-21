@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
@@ -46,13 +47,19 @@ namespace fluidsignalr
             app.UseRouting();
             app.UseEndpoints(endpoints => { endpoints.MapHub<FluidHub>("/fluidhub"); });
 
+            var provider = new FileExtensionContentTypeProvider();
+            provider.Mappings[".webmanifest"] = "application/manifest+json";
+
             app.UseSpaStaticFiles(new StaticFileOptions()
             {
+                ContentTypeProvider = provider,
                 OnPrepareResponse = ctx =>
                 {
                     if (ctx.Context.Request.Path.StartsWithSegments(IndexHtmlPath, StringComparison.InvariantCulture) ||
-                        ctx.Context.Request.Path.StartsWithSegments(WebManifestPath, StringComparison.InvariantCulture) ||
-                        ctx.Context.Request.Path.StartsWithSegments(BrowserConfigPath, StringComparison.InvariantCulture))
+                        ctx.Context.Request.Path.StartsWithSegments(WebManifestPath,
+                            StringComparison.InvariantCulture) ||
+                        ctx.Context.Request.Path.StartsWithSegments(BrowserConfigPath,
+                            StringComparison.InvariantCulture))
                     {
                         // Do not cache explicit `/index.html` See also: `DefaultPageStaticFileOptions` below for implicit "/index.html"
                         var headers = ctx.Context.Response.GetTypedHeaders();
