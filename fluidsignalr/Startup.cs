@@ -32,7 +32,7 @@ namespace fluidsignalr
         {
             services.Configure<ForwardedHeadersOptions>(options =>
             {
-                options.ForwardLimit = 3;
+                options.ForwardLimit = 1;
                 options.KnownNetworks.Add(new IPNetwork(IPAddress.Parse("0.0.0.0"), 0));
                 options.ForwardedHeaders = ForwardedHeaders.All;
             });
@@ -42,6 +42,7 @@ namespace fluidsignalr
 
         public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseForwardedHeaders();
             app.UseRouting();
             app.UseEndpoints(endpoints => { endpoints.MapHub<FluidHub>("/fluidhub"); });
 
