@@ -653,13 +653,11 @@ function createTextureAsync (url) {
 
     let image = new Image();
     image.onload = () => {
-        console.log("Image LOADED!");
         obj.width = image.width;
         obj.height = image.height;
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
     };
-    console.log("Trying to load image from url", url);
     image.src = url;
 
     return obj;
@@ -683,35 +681,18 @@ let colorUpdateTimer = 0.0;
 window.fluidHasStarted = false;
 
 function randomSplatsNow (num) {
-    let splats = Math.floor(num);
-    let millis = (Math.floor(Math.random() * 12) + 3) * 1000;
-    console.log("splatsNow!", splats, "millis", millis);
-    multipleSplats(splats);
+    multipleSplats(Math.floor(num));
 }
 
-
-function randomSplatsAndSeconds () {
-    let splats = Math.floor(Math.random() * 3) + 1;
-    let millis = (Math.floor(Math.random() * 12) + 3) * 1000;
-
-    console.log("splats", splats, "millis", millis);
-    multipleSplats(splats);
-    setTimeout(randomSplatsAndSeconds, millis);
-}
 
 function startFluid () {
     if (window.fluidHasStarted) {
-        console.log("Fluid has already been started...");
         return;
     } else {
-        console.log("WILL START FLUID NOW!");
         window.fluidHasStarted = true;
-        //document.getElementById('logo').className = "";
     }
 
     initFramebuffers();
-
-    //randomSplatsAndSeconds();
 
     lastUpdateTime = Date.now();
     colorUpdateTimer = 0.0;
@@ -994,14 +975,11 @@ function multipleSplats (amount) {
         const y = Math.random();
         const dx = 1000 * (Math.random() - 0.5);
         const dy = 1000 * (Math.random() - 0.5);
-        splat(x, y, dx, dy, color);
+        send_splat(x, y, dx, dy, color);
     }
 }
 
 function send_splat (x, y, dx, dy, color) {
-    //splat(x, y, dx, dy, color);
-    //return;
-    //console.log("send_splat", x, y, dx, dy, color);
     connection.invoke('splat', x, y, dx, dy, JSON.stringify(color));
 }
 
