@@ -58,8 +58,9 @@ const midiModules = [midi_nanoKontrol, midi_traktor, midi_generic];
 // <START SIGNALR CONNECTION>
 const connection = new signalR.HubConnectionBuilder().configureLogging(signalR.LogLevel.Information).withUrl("/fluidhub", 1).withAutomaticReconnect().build();
 
-connection.on('broadcastMessage', (name, message) => {
-    console.log('broadcastmessage:', name, message);
+connection.on('broadcastMessage', (message) => {
+    console.log("broadcastMessage", message);
+    canvasLog(message);
 });
 
 connection.start();
@@ -190,7 +191,7 @@ function canvasLog (...log) {
         msgTimeout = setTimeout(() => {
             msgElement.style.display = "none";
             isMsgVisible = false;
-        }, 500);
+        }, 1000);
     }
 }
 

@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
@@ -9,14 +9,16 @@ namespace fluidsignalr
     {
         public override Task OnConnectedAsync()
         {
-            Clients.All.SendAsync("broadcastMessage", "system", $"{Context.ConnectionId} joined the conversation from {Context.GetHttpContext().Connection.RemoteIpAddress}");
+            Clients.Others.SendAsync("broadcastMessage",
+                $"{Context.ConnectionId} joined from {Context.GetHttpContext().Connection.RemoteIpAddress}");
             return base.OnConnectedAsync();
         }
 
-        public void Send(string message)
+        public override Task OnDisconnectedAsync(Exception exception)
         {
-            // Call the broadcastMessage method to update clients.
-            Clients.All.SendAsync("broadcastMessage", Context.ConnectionId, message);
+            Clients.Others.SendAsync("broadcastMessage",
+                $"{Context.ConnectionId} from {Context.GetHttpContext().Connection.RemoteIpAddress} left!");
+            return base.OnDisconnectedAsync(exception);
         }
 
         public void Splat(double x, double y, double dx, double dy, string color)
@@ -27,12 +29,6 @@ namespace fluidsignalr
         public void Config(string jsonConfig)
         {
             Clients.All.SendAsync("broadConfig", jsonConfig);
-        }
-
-        public override Task OnDisconnectedAsync(Exception exception)
-        {
-            Clients.All.SendAsync("broadcastMessage", "system", $"{Context.ConnectionId} left the conversation");
-            return base.OnDisconnectedAsync(exception);
         }
     }
 }
