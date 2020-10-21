@@ -24,6 +24,8 @@ SOFTWARE.
 
 import * as signalR from "@microsoft/signalr";
 import WebMidi from 'webmidi';
+import screenfull from "screenfull";
+
 import ditheringTextureFile from './LDR_LLL1_0.png';
 import baseVertexShaderSource from './shaders/baseVertexShader.glsl';
 import blurVertexShaderSource from './shaders/blurVertexShader.glsl';
@@ -45,7 +47,11 @@ import curlShaderSource from "./shaders/curlShader.glsl";
 import vorticityShaderSource from "./shaders/vorticityShader.glsl";
 import pressureShaderSource from "./shaders/pressureShader.glsl";
 import gradientSubtractShaderSource from "./shaders/gradientSubtractShader.glsl";
-import screenfull from "screenfull";
+import * as nanoKontrol from "./midi/nanokontrol2.js";
+
+// ordered midi modules
+const midiModules = [nanoKontrol];
+
 
 // <START SIGNALR CONNECTION>
 const connection = new signalR.HubConnectionBuilder().configureLogging(signalR.LogLevel.Information).withUrl("/fluidhub", 1).withAutomaticReconnect().build();
@@ -94,179 +100,33 @@ if (queryStringContains("transparent")) {
 }
 
 // <MIDI INIT>
-
-const nanoKontrol2_button_PARAM1_SOLO = 32;
-const nanoKontrol2_button_PARAM2_SOLO = 33;
-const nanoKontrol2_button_PARAM3_SOLO = 34;
-const nanoKontrol2_button_PARAM4_SOLO = 35;
-const nanoKontrol2_button_PARAM5_SOLO = 36;
-const nanoKontrol2_button_PARAM6_SOLO = 37;
-const nanoKontrol2_button_PARAM7_SOLO = 38;
-const nanoKontrol2_button_PARAM8_SOLO = 39;
-const nanoKontrol2_button_PARAM1_MUTE = 48;
-const nanoKontrol2_button_PARAM2_MUTE = 49;
-const nanoKontrol2_button_PARAM3_MUTE = 50;
-const nanoKontrol2_button_PARAM4_MUTE = 51;
-const nanoKontrol2_button_PARAM5_MUTE = 52;
-const nanoKontrol2_button_PARAM6_MUTE = 53;
-const nanoKontrol2_button_PARAM7_MUTE = 54;
-const nanoKontrol2_button_PARAM8_MUTE = 55;
-const nanoKontrol2_button_PARAM1_RECORD = 64;
-const nanoKontrol2_button_PARAM2_RECORD = 65;
-const nanoKontrol2_button_PARAM3_RECORD = 66;
-const nanoKontrol2_button_PARAM4_RECORD = 67;
-const nanoKontrol2_button_PARAM5_RECORD = 68;
-const nanoKontrol2_button_PARAM6_RECORD = 69;
-const nanoKontrol2_button_PARAM7_RECORD = 70;
-const nanoKontrol2_button_PARAM8_RECORD = 71;
-
-const nanoKontrol2_slidersGroupButtons = [
-    [
-        nanoKontrol2_button_PARAM1_SOLO,
-        nanoKontrol2_button_PARAM2_SOLO,
-        nanoKontrol2_button_PARAM3_SOLO,
-        nanoKontrol2_button_PARAM4_SOLO,
-        nanoKontrol2_button_PARAM5_SOLO,
-        nanoKontrol2_button_PARAM6_SOLO,
-        nanoKontrol2_button_PARAM7_SOLO,
-        nanoKontrol2_button_PARAM8_SOLO
-    ],
-    [
-        nanoKontrol2_button_PARAM1_MUTE,
-        nanoKontrol2_button_PARAM2_MUTE,
-        nanoKontrol2_button_PARAM3_MUTE,
-        nanoKontrol2_button_PARAM4_MUTE,
-        nanoKontrol2_button_PARAM5_MUTE,
-        nanoKontrol2_button_PARAM6_MUTE,
-        nanoKontrol2_button_PARAM7_MUTE,
-        nanoKontrol2_button_PARAM8_MUTE
-    ],
-    [
-        nanoKontrol2_button_PARAM1_RECORD,
-        nanoKontrol2_button_PARAM2_RECORD,
-        nanoKontrol2_button_PARAM3_RECORD,
-        nanoKontrol2_button_PARAM4_RECORD,
-        nanoKontrol2_button_PARAM5_RECORD,
-        nanoKontrol2_button_PARAM6_RECORD,
-        nanoKontrol2_button_PARAM7_RECORD,
-        nanoKontrol2_button_PARAM8_RECORD
-    ]
-];
-
-/**
- * @param event{InputEventControlchange}
- */
-function midiInControlChange (event) {
-    //console.log("WebMidi got control change", event);
-
-    let understood = false;
-
-    if (event.controller.number === 0) {
-        config.SPLAT_FORCE = Math.floor((event.value / 127) * 10000);
-        if (config.SPLAT_FORCE === 0) config.SPLAT_FORCE = 0.01;
-        canvasLog("SPLAT_FORCE", config.SPLAT_FORCE);
-        understood = true;
-    }
-
-    if (event.controller.number === 1) {
-        config.SPLAT_RADIUS = event.value / 127;
-        if (config.SPLAT_RADIUS === 0) config.SPLAT_RADIUS = 0.01;
-        canvasLog("SPLAT_RADIUS", config.SPLAT_RADIUS);
-        understood = true;
-    }
-
-    if (event.controller.number === 2) {
-        config.DYE_RESOLUTION = 32 + ((event.value / 127) * 1024);
-        canvasLog("DYE_RESOLUTION", config.DYE_RESOLUTION);
-        config.doReinitFramebuffers = true;
-        understood = true;
-    }
-
-
-    if (event.controller.number === 3) {
-        config.SIM_RESOLUTION = 32 + ((event.value / 127) * 1024);
-        canvasLog("SIM_RESOLUTION", config.SIM_RESOLUTION);
-        config.doReinitFramebuffers = true;
-        understood = true;
-    }
-
-    if (event.controller.number === 4) {
-        config.CURL = (event.value / 127) * 50;
-        canvasLog("CURL", config.CURL);
-        understood = true;
-    }
-
-    if (event.controller.number === 7) {
-        config.PRESSURE = (event.value / 127);
-        canvasLog("PRESSURE", config.PRESSURE);
-        understood = true;
-    }
-
-
-    if (event.controller.number === 16) {
-        config.DENSITY_DISSIPATION = ((event.value / 127) - 0.5) * 4;
-        canvasLog("DENSITY_DISSIPATION", config.DENSITY_DISSIPATION);
-        understood = true;
-
-    }
-
-
-    if (event.controller.number === 17) {
-        let knob = (event.value / 127);
-        config.VELOCITY_DISSIPATION = knob * 10;
-        canvasLog("VELOCITY_DISSIPATION", config.VELOCITY_DISSIPATION);
-        understood = true;
-
-    }
-    if (understood) connection.invoke('config', JSON.stringify(config));
-    if (!understood) {
-        canvasLog(`MIDI: ${event.controller.number}/${event.value} on '${event.target.name}'`);
-        console.warn("Got midi message but not understood: ", event.target.name, "messsageType", event.type, "controllerNumber", event.controller.number, "channel: ", event.channel, "value: ", event.value);
-    }
-}
-
 function startupMidiSupport () {
     WebMidi.enable(function (err) {
         if (err) {
             console.error("WebMidi could not be enabled.", err);
         } else {
             console.log("WebMidi enabled!");
-
-            // Reacting when a new device becomes available
+            // Reacting when a new device becomes available.
             WebMidi.addListener("connected", function (e) {
-                // @TODO: event.target.name.toLowerCase().includes("nanokontrol")
-
-                if (e.port.type === "input") {
-                    // don't double add.
-                    e.port.removeListener("controlchange", "all", midiInControlChange);
-                    e.port.addListener("controlchange", "all", midiInControlChange);
-                    console.log("WebMidi input connected", e);
-                } else if (e.port.type === "output") {
-                    // turn off all the LEDs.
-                    nanoKontrol2_slidersGroupButtons.forEach(rows => {
-                        rows.forEach(button => {
-                            e.port.sendControlChange(button, 0);
-                        });
-                    });
-                    splatHook = (x, y, dx, dy, realColor) => {
-                        // x goes from 0.00 to 1.00 (left to right)
-                        let buttonX = Math.ceil((x + 0.00) * 8);
-                        buttonX = buttonX < 1 ? 1 : buttonX;
-                        // y goes from 1.00 to 0.00 (top to bottom)
-                        let buttonY = Math.ceil((1.00 - y) * 3);
-                        buttonY = buttonY < 1 ? 1 : buttonY;
-
-                        // now find the button for that x, y
-                        let theButton = nanoKontrol2_slidersGroupButtons[buttonY - 1][buttonX - 1];
-
-                        //console.log("splatHook", x, y, "buttons", buttonX, buttonY, "theButton", theButton);
-
-
-                        e.port.sendControlChange(theButton, 127, "all");
-                        e.port.sendControlChange(theButton, 0, "all", {time: "+500"});
+                for (const module of midiModules) {
+                    if (module.isSupportedDevice(e.port.manufacturer, e.port.name)) {
+                        canvasLog(`Module '${module.name}' supports '${e.port.name}'!`);
+                        if (e.port.type === "input") {
+                            if (module.midiInControlChange) {
+                                const controlChangeListener = (e) => {
+                                    if (module.midiInControlChange(e, config, canvasLog)) {
+                                        connection.invoke('config', JSON.stringify(config));
+                                    }
+                                };
+                                e.port.removeListener("controlchange", "all", controlChangeListener);
+                                e.port.addListener("controlchange", "all", controlChangeListener);
+                            }
+                        } else if (e.port.type === "output") {
+                            if (module.midiSplatHandler) {
+                                splatHook = module.midiSplatHandler(e.port);
+                            }
+                        }
                     }
-                    // hook into the splat received, map into the matrix, turn on leds
-
                 }
             });
         }
