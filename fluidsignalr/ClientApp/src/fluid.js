@@ -56,7 +56,10 @@ const midiModules = [midi_nanoKontrol, midi_traktor, midi_generic];
 
 
 // <START SIGNALR CONNECTION>
-const connection = new signalR.HubConnectionBuilder().configureLogging(signalR.LogLevel.Information).withUrl("/fluidhub", 1).withAutomaticReconnect().build();
+const connection = new signalR.HubConnectionBuilder().configureLogging(signalR.LogLevel.Information).withUrl("/fluidhub", {
+    transport: signalR.HttpTransportType.WebSockets,
+    skipNegotiation: true
+}).withAutomaticReconnect().build();
 
 connection.on('broadcastMessage', (message) => {
     console.log("broadcastMessage", message);
@@ -71,20 +74,20 @@ let splatHook = null;
 let config = {
     MOBILE_DYE_RESOLUTION: 128,
     MOBILE_SIM_RESOLUTION: 64,
-    SIM_RESOLUTION: 512,
+    SIM_RESOLUTION: 241.63779527559055,
     DYE_RESOLUTION: 1024,
-    DENSITY_DISSIPATION: 0.2 * 5,
-    VELOCITY_DISSIPATION: 0.75,
-    PRESSURE: 0.1,
+    DENSITY_DISSIPATION: 0.8661417322834644,
+    VELOCITY_DISSIPATION: 1.0866141732283463,
+    PRESSURE: 0.7244094488188977,
     PRESSURE_ITERATIONS: 3,
-    CURL: 45,
-    SPLAT_RADIUS: 0.15,
+    CURL: 32.677165354330704,
+    SPLAT_RADIUS: 0.07086614173228346,
     SPLAT_FORCE: 6000,
     SHADING: true,
     COLORFUL: false,
     COLOR_UPDATE_SPEED: 1,
     PAUSED: false,
-    BACK_COLOR: {r: 0x00, g: 0x00, b: 0x00}, //     background-color: #0C1D2D;
+    BACK_COLOR: {r: 0, g: 0, b: 0},
     TRANSPARENT: false,
     BLOOM: true,
     BLOOM_ITERATIONS: 8,
@@ -93,8 +96,8 @@ let config = {
     BLOOM_THRESHOLD: 0.6,
     BLOOM_SOFT_KNEE: 0.7,
     SUNRAYS: true,
-    SUNRAYS_RESOLUTION: 196 * 4,
-    SUNRAYS_WEIGHT: 1.0,
+    SUNRAYS_RESOLUTION: 784,
+    SUNRAYS_WEIGHT: 1,
     doReinitFramebuffers: false
 };
 
@@ -1086,8 +1089,11 @@ window.addEventListener('touchend', e => {
 window.addEventListener('keydown', e => {
     if (e.code === 'KeyP')
         config.PAUSED = !config.PAUSED;
+    if (e.code === 'KeyJ') {
+        console.log(JSON.stringify(config, null, "\t"));
+    }
     if (e.key === ' ')
-        splatStack.push(parseInt(Math.random() * 20) + 5);
+        randomSplatsNow(parseInt(Math.random() * 20) + 5);
 });
 
 function updatePointerDownData (pointer, id, posX, posY) {
