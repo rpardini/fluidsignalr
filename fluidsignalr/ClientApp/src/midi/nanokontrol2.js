@@ -75,8 +75,6 @@ export function isSupportedDevice (manufacturer, name) {
  * @param logger{function}
  */
 export function midiInControlChange (event, config, logger) {
-    //console.log("WebMidi got control change", event);
-
     let understood = false;
 
     if (event.controller.number === 0) {
@@ -128,17 +126,15 @@ export function midiInControlChange (event, config, logger) {
 
     }
 
-
     if (event.controller.number === 17) {
-        let knob = (event.value / 127);
-        config.VELOCITY_DISSIPATION = knob * 10;
+        config.VELOCITY_DISSIPATION = ((event.value / 127) - 0.5) * 4;
         logger("VELOCITY_DISSIPATION", config.VELOCITY_DISSIPATION);
         understood = true;
     }
 
     if (!understood) {
-        logger(`MIDI: ${event.controller.number}/${event.value} on '${event.target.name}'`);
-        console.warn("Got midi message but not understood: ", event.target.name, "messsageType", event.type, "controllerNumber", event.controller.number, "channel: ", event.channel, "value: ", event.value);
+        logger(`Unknown MIDI CC: ${event.controller.number}/${event.value} on '${event.target.name}'`);
+        //console.warn("Got midi message but not understood: ", event.target.name, "messsageType", event.type, "controllerNumber", event.controller.number, "channel: ", event.channel, "value: ", event.value);
     }
 
     return understood;

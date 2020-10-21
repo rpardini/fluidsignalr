@@ -47,10 +47,11 @@ import curlShaderSource from "./shaders/curlShader.glsl";
 import vorticityShaderSource from "./shaders/vorticityShader.glsl";
 import pressureShaderSource from "./shaders/pressureShader.glsl";
 import gradientSubtractShaderSource from "./shaders/gradientSubtractShader.glsl";
-import * as nanoKontrol from "./midi/nanokontrol2.js";
+import * as midi_nanoKontrol from "./midi/nanokontrol2.js";
+import * as midi_traktor from "./midi/traktor.js";
 
 // ordered midi modules
-const midiModules = [nanoKontrol];
+const midiModules = [midi_nanoKontrol, midi_traktor];
 
 
 // <START SIGNALR CONNECTION>
@@ -108,19 +109,29 @@ function startupMidiSupport () {
             console.log("WebMidi enabled!");
             // Reacting when a new device becomes available.
             WebMidi.addListener("connected", function (e) {
+                let someModuleSupport = false;
                 for (const module of midiModules) {
                     if (module.isSupportedDevice(e.port.manufacturer, e.port.name)) {
+                        someModuleSupport = true;
                         canvasLog(`Module '${module.name}' supports '${e.port.name}'!`);
+
                         if (e.port.type === "input") {
                             if (module.midiInControlChange) {
-                                const controlChangeListener = (e) => {
-                                    if (module.midiInControlChange(e, config, canvasLog)) {
+                                e.port.addListener("controlchange", "all", (e) => {
+                                    if (module.midiInControlChange(e, config, canvasLog, randomSplatsNow)) {
                                         connection.invoke('config', JSON.stringify(config));
                                     }
-                                };
-                                e.port.removeListener("controlchange", "all", controlChangeListener);
-                                e.port.addListener("controlchange", "all", controlChangeListener);
+                                });
                             }
+
+                            if (module.midiInNoteOn) {
+                                e.port.addListener("noteon", "all", (e) => {
+                                    if (module.midiInNoteOn(e, config, canvasLog, randomSplatsNow)) {
+                                        connection.invoke('config', JSON.stringify(config));
+                                    }
+                                });
+                            }
+
                         } else if (e.port.type === "output") {
                             if (module.midiSplatHandler) {
                                 splatHook = module.midiSplatHandler(e.port);
@@ -128,114 +139,15 @@ function startupMidiSupport () {
                         }
                     }
                 }
+                if (!someModuleSupport) {
+                    canvasLog(`No module seems to support '${e.port.name}'!`);
+                }
             });
         }
     });
 }
 
-
-/*
-function oldstuff (event) {
-    let understood = false;
-
-    if (parsed.messageType === "noteon") {
-        if (parsed.velocity === 127) { // only on touch
-            randomSplatsNow((parsed.key * 1) - 2);
-            understood = true;
-        }
-    }
-
-    // Traktor
-
-    if (parsed.messageType === "controlchange") {
-        if (parsed.controllerNumber === 42) {
-            // pitch sliders
-            if (parsed.channel === 1) {
-                console.log("LEFT PITCH: ", parsed.controllerValue);
-                // transpose 0 to 0.01, 127 to 1.0
-                config.PRESSURE = (parsed.controllerValue / 127) * 2;
-                console.log("config.PRESSURE", config.PRESSURE);
-                understood = true;
-            }
-            if (parsed.channel === 3) {
-                console.log("RIGHT PITCH: ", parsed.controllerValue);
-                // transpose 0 to 0.01, 127 to 1.0
-                config.DYE_RESOLUTION = 32 + ((parsed.controllerValue / 127) * 1024);
-                console.log("config.DYE_RESOLUTION", config.DYE_RESOLUTION);
-                config.doReinitFramebuffers = true;
-                understood = true;
-            }
-        }
-
-
-        if (parsed.controllerNumber === 1) {
-            if (parsed.channel === 5) {
-                // the left main level knob. value is 0 to 127.
-                console.log("LEFT LEVEL MAIN: ", parsed.controllerValue);
-                // transpose 0 to 0.01, 127 to 1.0
-                config.SPLAT_RADIUS = parsed.controllerValue / 127;
-                if (config.SPLAT_RADIUS === 0) config.SPLAT_RADIUS = 0.01;
-                console.log("config.SPLAT_RADIUS", config.SPLAT_RADIUS);
-                understood = true;
-            }
-
-            if (parsed.channel === 7) {
-                // the left main level knob. value is 0 to 127.
-                console.log("MIXER SLIDER: ", parsed.controllerValue);
-                // transpose 0 to 0, 127 to 1.0
-                //config.PRESSURE = parsed.controllerValue / 127;
-                //console.log("config.PRESSURE", config.PRESSURE);
-                //config.PRESSURE_ITERATIONS = (parsed.controllerValue / 127) * 200;
-                //console.log("config.PRESSURE_ITERATIONS", config.PRESSURE);
-
-                config.SIM_RESOLUTION = 32 + ((parsed.controllerValue / 127) * 128);
-                console.log("config.SIM_RESOLUTION", config.SIM_RESOLUTION);
-                config.doReinitFramebuffers = true;
-
-
-                understood = true;
-            }
-
-            if (parsed.channel === 6) {
-                // the right main level knob. value is 0 to 127.
-                console.log("RIGHT LEVEL MAIN: ", parsed.controllerValue);
-                // transpose 0 to 0, 127 to 1.0
-                config.CURL = (parsed.controllerValue / 127) * 50;
-                console.log("config.CURL", config.CURL);
-                understood = true;
-            }
-
-
-        }
-        if (parsed.controllerNumber === 2) {
-            if (parsed.channel === 5) {
-                console.log("LEFT EFFECT KNOB: ", parsed.controllerValue);
-                // transpose 0 to 0.01, 127 to 1.0
-                config.DENSITY_DISSIPATION = ((parsed.controllerValue / 127) - 0.5) * 4;
-                console.log("config.DENSITY_DISSIPATION", config.DENSITY_DISSIPATION);
-                understood = true;
-            }
-
-            if (parsed.channel === 6) {
-                console.log("RIGHT EFFECT KNOB: ", parsed.controllerValue);
-                // transpose 0 to 0, 127 to 1.0
-                let knob = (parsed.controllerValue / 127) - 0.5;
-                config.VELOCITY_DISSIPATION = knob * 4;
-                console.log("config.VELOCITY_DISSIPATION", config.VELOCITY_DISSIPATION);
-                understood = true;
-            }
-
-
-        }
-
-
-    }
-
-}
-*/
-
 startupMidiSupport();
-
 // </MIDI INIT>
 
 
