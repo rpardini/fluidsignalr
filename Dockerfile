@@ -1,5 +1,5 @@
-FROM ubuntu:groovy as nodebuilder
-#RUN apk add --no-cache util-linux # for lscpu needed by parcel
+FROM ubuntu:hirsute as nodebuilder
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -y update
 RUN apt-get -y install nodejs npm
 WORKDIR /js
