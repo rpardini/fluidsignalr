@@ -1,0 +1,63 @@
+name: master-latest
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      # We use buildx instead of regular build so we can take advantage of Docker layer cache via GithubActions' cache
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+
+      # Setup the Github Actions cache.
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildxarch-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildxarch-
+
+      - name: Docker Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.DOCKER_GITHUB_USERNAME }} # github username
+          password: ${{ secrets.DOCKER_GITHUB_PAT }}      # github personal access token for the owner
+
+      - name: Prepare
+        id: prep
+        run: |
+          echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ secrets.DOCKER_GITHUB_USERNAME }}/${{ github.event.repository.name }}:latest,ghcr.io/${{ secrets.DOCKER_GITHUB_USERNAME }}/${{ github.event.repository.name }}:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.title=${{ github.event.repository.name }}
+            org.opencontainers.image.description=${{ github.event.repository.description }}
+            org.opencontainers.image.url=${{ github.event.repository.html_url }}
+            org.opencontainers.image.source=${{ github.event.repository.clone_url }}
+            org.opencontainers.image.created=${{ steps.prep.outputs.created }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
+          cache-from: type=local,src=/tmp/.buildx-cache/release
+          cache-to: type=local,mode=max,dest=/tmp/.buildx-cache/release
+
