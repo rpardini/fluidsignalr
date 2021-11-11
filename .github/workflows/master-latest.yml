@@ -33,8 +33,8 @@ jobs:
         uses: docker/login-action@v1
         with:
           registry: ghcr.io
-          username: ${{ secrets.DOCKER_GITHUB_USERNAME }} # github username
-          password: ${{ secrets.DOCKER_GITHUB_PAT }}      # github personal access token for the owner
+          username: ${{ github.repository_owner }} # github username or org
+          password: ${{ secrets.GITHUB_TOKEN }}    # github actions builtin token. repo has to have pkg access.
 
       - name: Prepare
         id: prep
@@ -49,7 +49,7 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/${{ secrets.DOCKER_GITHUB_USERNAME }}/${{ github.event.repository.name }}:latest,ghcr.io/${{ secrets.DOCKER_GITHUB_USERNAME }}/${{ github.event.repository.name }}:${{ github.sha }}
+          tags: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest,ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ github.sha }}
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
