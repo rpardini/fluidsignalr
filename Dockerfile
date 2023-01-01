@@ -8,7 +8,7 @@ RUN npm ci
 COPY fluidsignalr/ClientApp/src /js/src
 RUN npm run build
 
-FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /app
 
 # copy csproj and restore as distinct layers
@@ -28,7 +28,7 @@ RUN dotnet publish -c Release -o out
 ###
 ### Final runtime image
 ###
-FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/fluidsignalr/out ./
 EXPOSE 5000
