@@ -1,5 +1,7 @@
-FROM node:16 as nodebuilder
+FROM ubuntu:rolling as nodebuilder
 ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get -y update
+RUN apt-get -y install nodejs npm
 WORKDIR /js
 COPY fluidsignalr/ClientApp/package*.json /js/
 RUN npm ci
@@ -21,7 +23,7 @@ WORKDIR /app/fluidsignalr
 
 # Copy the js dist from the nodebuilder stage; the csproj has a target to copy it over to the out dir
 COPY --from=nodebuilder /js/dist /app/fluidsignalr/ClientApp/dist
-RUN dotnet publish -c Release  -o out 
+RUN dotnet publish -c Release -o out
 
 ###
 ### Final runtime image
