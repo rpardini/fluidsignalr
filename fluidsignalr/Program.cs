@@ -28,7 +28,8 @@ namespace fluidsignalr
                         }
                         catch (InvalidOperationException ignored)
                         {
-                            Console.Out.WriteLine("Could not bind 5001: " + ignored.GetType().Name + ":" + ignored.Message);
+                            Console.Out.WriteLine("Could not bind 5001: " + ignored.GetType().Name + ":" +
+                                                  ignored.Message);
                         }
                     });
                 });

@@ -64,7 +64,7 @@ namespace fluidsignalr
                         // Do not cache explicit `/index.html` See also: `DefaultPageStaticFileOptions` below for implicit "/index.html"
                         var headers = ctx.Context.Response.GetTypedHeaders();
                         headers.CacheControl = new CacheControlHeaderValue
-                            {Public = true, MaxAge = TimeSpan.FromDays(0)};
+                            { Public = true, MaxAge = TimeSpan.FromDays(0) };
                     }
                     else
                     {
@@ -98,7 +98,7 @@ namespace fluidsignalr
                             // Do not cache implicit `/index.html` at the root.  See also: `UseSpaStaticFiles` above
                             var headers = ctx.Context.Response.GetTypedHeaders();
                             headers.CacheControl = new CacheControlHeaderValue
-                                {Public = true, MaxAge = TimeSpan.FromDays(0)};
+                                { Public = true, MaxAge = TimeSpan.FromDays(0) };
                         }
                     };
                 }
