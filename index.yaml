@@ -3,6 +3,16 @@ entries:
   fluidsignalr:
   - apiVersion: v2
     appVersion: 1.16.0
+    created: "2023-11-06T09:18:04.954793841Z"
+    description: A Helm chart for Kubernetes
+    digest: b99b84a631aaf328a5c2e60df3b8b8f6874a1519cdee56a67d2d1073ba4824ea
+    name: fluidsignalr
+    type: application
+    urls:
+    - https://github.com/rpardini/fluidsignalr/releases/download/fluidsignalr-0.1.3/fluidsignalr-0.1.3.tgz
+    version: 0.1.3
+  - apiVersion: v2
+    appVersion: 1.16.0
     created: "2023-11-06T09:01:11.729751721Z"
     description: A Helm chart for Kubernetes
     digest: c0806094913f04382aaf0096efa8257f10f92605d47589f7fc7aa1668905a387
@@ -21,4 +31,4 @@ entries:
     urls:
     - https://github.com/rpardini/fluidsignalr/releases/download/fluidsignalr-0.1.1/fluidsignalr-0.1.1.tgz
     version: 0.1.1
-generated: "2023-11-06T09:01:11.729758121Z"
+generated: "2023-11-06T09:18:04.95480938Z"
