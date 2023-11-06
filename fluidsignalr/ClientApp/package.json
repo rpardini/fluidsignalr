@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "src/fluid.js",
   "dependencies": {
-    "@microsoft/signalr": "^3",
+    "@microsoft/signalr": "^7",
     "midimessage": "^1",
     "screenfull": "^5",
     "webmidi": "^2"
