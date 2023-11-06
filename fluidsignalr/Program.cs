@@ -31,7 +31,8 @@ namespace fluidsignalr
                             Console.Out.WriteLine("Could not bind 5001: " + ignored.GetType().Name + ":" + ignored.Message);
                         }
                     });
-                });
+                })
+                .UseConsoleLifetime();
         }
     }
 }
