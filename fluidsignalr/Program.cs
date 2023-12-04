@@ -22,13 +22,17 @@ namespace fluidsignalr
                     webBuilder.UseKestrel(serverOptions =>
                     {
                         serverOptions.ListenAnyIP(5000);
-                        try
-                        {
-                            serverOptions.ListenAnyIP(5001, options => { options.UseHttps(); });
-                        }
-                        catch (InvalidOperationException ignored)
-                        {
-                            Console.Out.WriteLine("Could not bind 5001: " + ignored.GetType().Name + ":" + ignored.Message);
+                        
+                        // Only bind to 5001 if USE_DEV_HTTPS environment variable is set to "true"
+                        if (bool.TryParse(Environment.GetEnvironmentVariable("USE_DEV_HTTPS"), out var useDevHttps) && useDevHttps) {
+				try
+				{
+				    serverOptions.ListenAnyIP(5001, options => { options.UseHttps(); });
+				}
+				catch (InvalidOperationException ignored)
+				{
+				    Console.Out.WriteLine("Could not bind 5001: " + ignored.GetType().Name + ":" + ignored.Message);
+				}
                         }
                     });
                 })
