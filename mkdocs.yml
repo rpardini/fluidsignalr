@@ -1,0 +1,7 @@
+site_name: fluidsignalr-app
+site_description: An informative description
+plugins:
+  - techdocs-core
+nav:
+  - Getting Started: index.md
+
