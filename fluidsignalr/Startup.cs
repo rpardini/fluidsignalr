@@ -34,7 +34,7 @@ namespace fluidsignalr
             services.Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardLimit = 1;
-                options.KnownNetworks.Add(new IPNetwork(IPAddress.Parse("0.0.0.0"), 0));
+                options.KnownNetworks.Add(new Microsoft.AspNetCore.HttpOverrides.IPNetwork(IPAddress.Parse("0.0.0.0"), 0));
                 options.ForwardedHeaders = ForwardedHeaders.All;
             });
             services.AddSignalR();
