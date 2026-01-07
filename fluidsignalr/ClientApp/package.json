@@ -1,7 +1,6 @@
 {
   "name": "fluid",
   "version": "1.0.0",
-  "main": "src/fluid.js",
   "dependencies": {
     "@microsoft/signalr": "^7",
     "midimessage": "^1",
@@ -9,15 +8,15 @@
     "webmidi": "^2"
   },
   "scripts": {
-    "start": "parcel src/index.html -p 4321",
+    "start": "parcel src/index.html --port 4321",
     "build": "parcel build src/index.html"
   },
   "devDependencies": {
-    "glslify-bundle": "^5",
-    "glslify-deps": "^1",
-    "parcel-bundler": "^1",
-    "parcel-plugin-pwa-manifest": "^3",
-    "parcel-plugin-url-loader": "^1"
+    "@parcel/packager-xml": "^2.16.3",
+    "@parcel/transformer-glsl": "^2.10.3",
+    "parcel": "^2.10.3",
+    "parcel-config-pwa-manifest": "^0.1.6",
+    "process": "^0.11.10"
   },
   "description": "Fluid sim from PavelDoGreat modified to work over websockets and with MIDI support.",
   "pwaManifest": {
@@ -25,7 +24,7 @@
     "description": "Fluid sim from PavelDoGreat modified to work over websockets and with MIDI support.",
     "shortName": "Fluid",
     "theme": "black",
-    "start_url": "/",
+    "startURL": "/",
     "display": "fullscreen",
     "generateIconOptions": {
       "baseIcon": "./src/logo.svg",

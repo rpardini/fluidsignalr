@@ -6,6 +6,7 @@ WORKDIR /js
 COPY fluidsignalr/ClientApp/package*.json /js/
 RUN npm ci
 COPY fluidsignalr/ClientApp/src /js/src
+COPY fluidsignalr/ClientApp/.parcelrc /js/
 RUN npm run build
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
