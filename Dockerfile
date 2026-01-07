@@ -1,7 +1,8 @@
 FROM node:22-trixie as nodebuilder
 WORKDIR /js
-COPY fluidsignalr/ClientApp/package*.json /js/
-RUN npm ci
+COPY fluidsignalr/ClientApp/package.json /js/
+# no package-lock.json checked in, go to hell
+RUN npm install
 COPY fluidsignalr/ClientApp/src /js/src
 COPY fluidsignalr/ClientApp/.parcelrc /js/
 RUN npm run build
