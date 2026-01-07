@@ -1,4 +1,4 @@
-FROM ubuntu:rolling as nodebuilder
+FROM debian:stable as nodebuilder
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -y update
 RUN apt-get -y install nodejs npm
