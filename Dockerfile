@@ -1,7 +1,4 @@
-FROM debian:stable as nodebuilder
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get -y update
-RUN apt-get -y install nodejs npm
+FROM node:22-trixie as nodebuilder
 WORKDIR /js
 COPY fluidsignalr/ClientApp/package*.json /js/
 RUN npm ci
