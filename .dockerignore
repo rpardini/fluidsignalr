@@ -2,7 +2,6 @@
 **/obj/
 **/out/
 demo
-charts
 .github
 .git
 **/*.md
