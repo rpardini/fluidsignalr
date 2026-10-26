@@ -1,19 +1,18 @@
 {
   "name": "fluid",
-  "version": "1.2026.1",
+  "version": "1.2026.2",
   "dependencies": {
     "@microsoft/signalr": "^10",
-    "midimessage": "^1",
-    "screenfull": "^5",
-    "webmidi": "^2"
+    "screenfull": "^6",
+    "webmidi": "^3"
   },
   "scripts": {
     "start": "parcel src/index.html --port 4321",
     "build": "parcel build src/index.html"
   },
   "devDependencies": {
-    "@parcel/transformer-glsl": "^2.16.3",
-    "parcel": "^2.16.3",
+    "@parcel/transformer-glsl": "^2.16.4",
+    "parcel": "^2.16.4",
     "parcel-config-pwa-manifest": "^0.1.6"
   },
   "description": "Fluid sim from PavelDoGreat modified to work over websockets and with MIDI support.",

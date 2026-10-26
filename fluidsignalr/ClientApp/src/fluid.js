@@ -23,7 +23,7 @@ SOFTWARE.
 */
 
 import * as signalR from "@microsoft/signalr";
-import WebMidi from 'webmidi';
+import {WebMidi} from 'webmidi';
 import screenfull from "screenfull";
 
 import ditheringTextureFile from './LDR_LLL1_0.png';
@@ -107,47 +107,44 @@ if (queryStringContains("transparent")) {
 
 // <MIDI INIT>
 function startupMidiSupport () {
-    WebMidi.enable(function (err) {
-        if (err) {
-            console.error("WebMidi could not be enabled.", err);
-        } else {
-            console.log("WebMidi enabled!");
-            // Reacting when a new device becomes available.
-            WebMidi.addListener("connected", function (e) {
-                for (const module of midiModules) {
-                    if (module.isSupportedDevice(e.port.manufacturer, e.port.name)) {
-                        console.log(`Module '${module.name}' supports '${e.port.name}'!`);
-                        canvasLog(`Module '${module.name}' supports '${e.port.name}'!`);
+    // Reacting when a new device becomes available; also fired for already-present ports during enable().
+    WebMidi.addListener("connected", function (e) {
+        for (const module of midiModules) {
+            if (module.isSupportedDevice(e.port.manufacturer, e.port.name)) {
+                console.log(`Module '${module.name}' supports '${e.port.name}'!`);
+                canvasLog(`Module '${module.name}' supports '${e.port.name}'!`);
 
-                        if (e.port.type === "input") {
-                            if (module.midiInControlChange) {
-                                e.port.addListener("controlchange", "all", (e) => {
-                                    if (module.midiInControlChange(e, config, canvasLog, randomSplatsNow)) {
-                                        connection.invoke('config', JSON.stringify(config));
-                                    }
-                                });
+                if (e.port.type === "input") {
+                    if (module.midiInControlChange) {
+                        e.port.addListener("controlchange", (e) => {
+                            if (module.midiInControlChange(e, config, canvasLog, randomSplatsNow)) {
+                                connection.invoke('config', JSON.stringify(config));
                             }
+                        });
+                    }
 
-                            if (module.midiInNoteOn) {
-                                e.port.addListener("noteon", "all", (e) => {
-                                    if (module.midiInNoteOn(e, config, canvasLog, randomSplatsNow)) {
-                                        connection.invoke('config', JSON.stringify(config));
-                                    }
-                                });
+                    if (module.midiInNoteOn) {
+                        e.port.addListener("noteon", (e) => {
+                            if (module.midiInNoteOn(e, config, canvasLog, randomSplatsNow)) {
+                                connection.invoke('config', JSON.stringify(config));
                             }
+                        });
+                    }
 
-                        } else if (e.port.type === "output") {
-                            // @TODO: if more than one module/output only the last one will get it.
-                            if (module.midiSplatHandler) {
-                                splatHook = module.midiSplatHandler(e.port);
-                            }
-                        }
-                        break; // first module to support will "get it"; generic always supports
+                } else if (e.port.type === "output") {
+                    // @TODO: if more than one module/output only the last one will get it.
+                    if (module.midiSplatHandler) {
+                        splatHook = module.midiSplatHandler(e.port);
                     }
                 }
-            });
+                break; // first module to support will "get it"; generic always supports
+            }
         }
     });
+
+    WebMidi.enable()
+        .then(() => console.log("WebMidi enabled!"))
+        .catch(err => console.error("WebMidi could not be enabled.", err));
 }
 
 startupMidiSupport();

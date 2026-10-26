@@ -78,21 +78,21 @@ export function midiInControlChange (event, config, logger) {
     let understood = false;
 
     if (event.controller.number === 0) {
-        config.SPLAT_FORCE = Math.floor((event.value / 127) * 10000);
+        config.SPLAT_FORCE = Math.floor((event.rawValue / 127) * 10000);
         if (config.SPLAT_FORCE === 0) config.SPLAT_FORCE = 0.01;
         logger("SPLAT_FORCE", config.SPLAT_FORCE);
         understood = true;
     }
 
     if (event.controller.number === 1) {
-        config.SPLAT_RADIUS = event.value / 127;
+        config.SPLAT_RADIUS = event.rawValue / 127;
         if (config.SPLAT_RADIUS === 0) config.SPLAT_RADIUS = 0.01;
         logger("SPLAT_RADIUS", config.SPLAT_RADIUS);
         understood = true;
     }
 
     if (event.controller.number === 2) {
-        config.DYE_RESOLUTION = 32 + ((event.value / 127) * 1024);
+        config.DYE_RESOLUTION = 32 + ((event.rawValue / 127) * 1024);
         logger("DYE_RESOLUTION", config.DYE_RESOLUTION);
         config.doReinitFramebuffers = true;
         understood = true;
@@ -100,41 +100,41 @@ export function midiInControlChange (event, config, logger) {
 
 
     if (event.controller.number === 3) {
-        config.SIM_RESOLUTION = 32 + ((event.value / 127) * 1024);
+        config.SIM_RESOLUTION = 32 + ((event.rawValue / 127) * 1024);
         logger("SIM_RESOLUTION", config.SIM_RESOLUTION);
         config.doReinitFramebuffers = true;
         understood = true;
     }
 
     if (event.controller.number === 4) {
-        config.CURL = (event.value / 127) * 50;
+        config.CURL = (event.rawValue / 127) * 50;
         logger("CURL", config.CURL);
         understood = true;
     }
 
     if (event.controller.number === 7) {
-        config.PRESSURE = (event.value / 127);
+        config.PRESSURE = (event.rawValue / 127);
         logger("PRESSURE", config.PRESSURE);
         understood = true;
     }
 
 
     if (event.controller.number === 16) {
-        config.DENSITY_DISSIPATION = ((event.value / 127) - 0.5) * 4;
+        config.DENSITY_DISSIPATION = ((event.rawValue / 127) - 0.5) * 4;
         logger("DENSITY_DISSIPATION", config.DENSITY_DISSIPATION);
         understood = true;
 
     }
 
     if (event.controller.number === 17) {
-        config.VELOCITY_DISSIPATION = ((event.value / 127) - 0.5) * 4;
+        config.VELOCITY_DISSIPATION = ((event.rawValue / 127) - 0.5) * 4;
         logger("VELOCITY_DISSIPATION", config.VELOCITY_DISSIPATION);
         understood = true;
     }
 
     if (!understood) {
-        logger(`Unknown MIDI CC: ${event.controller.number}/${event.value} on '${event.target.name}'`);
-        //console.warn("Got midi message but not understood: ", event.target.name, "messsageType", event.type, "controllerNumber", event.controller.number, "channel: ", event.channel, "value: ", event.value);
+        logger(`Unknown MIDI CC: ${event.controller.number}/${event.rawValue} on '${event.port.name}'`);
+        //console.warn("Got midi message but not understood: ", event.port.name, "messsageType", event.type, "controllerNumber", event.controller.number, "channel: ", event.message.channel, "value: ", event.rawValue);
     }
 
     return understood;
@@ -162,8 +162,8 @@ export function midiSplatHandler (port) {
 
         // now find the button for that x, y
         let theButton = nanoKontrol2_slidersGroupButtons[buttonY - 1][buttonX - 1];
-        port.sendControlChange(theButton, 127, "all");
-        port.sendControlChange(theButton, 0, "all", {time: "+500"});
+        port.sendControlChange(theButton, 127);
+        port.sendControlChange(theButton, 0, {time: "+500"});
     }
     return splatHook;
 }
