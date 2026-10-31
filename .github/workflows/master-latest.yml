@@ -3,8 +3,8 @@ name: master-latest
 on:
   workflow_dispatch:
   schedule:
-    # every day at 6AM UTC
-    - cron: "0 6 * * *"
+    # every first Sunday of the month at 06:00 UTC
+    - cron: '0 6 1-7 * 0'
   push:
     branches: [ master ]
 
